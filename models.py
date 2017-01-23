@@ -35,13 +35,14 @@ class Study(Model):
     description = Column(String)
     short_code = Column(String, unique=True, index=True, nullable=False)  # Should we constrain length?
     longitudinal = Column(Boolean, nullable=False)
+    lead_person = Column(String, nullable=False)
 
 
 class Sample(Model):
     __tablename__ = 'sample'
     study_id = Column(Integer, ForeignKey('study.id'), index=True, nullable=False)
     study = relationship('Study', backref="samples")
-    collection_date = Column(DateTime)  # Need validation against longitudinal study bool
+    collection_date = Column(DateTime)  # Need validation against longitudinal study bool?
 
 
 class MatrixPlate(Model):

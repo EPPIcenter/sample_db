@@ -2,6 +2,7 @@
     - Linked to study information (year, site, contact person, sample type (DNA, serum, mosquito, etc))
     - Option to have more than 1 DNA sample with the same name, differentiated as spot 1, spot 2 etc.
         - Notes associated with sample, "second spot extracted"
+            - Need to think about a good way to do this, what terminology can we use to differentiate different sample types? Different sample types have different characteristics that we could potentially describe, e.g. bloodspots have different numbers of spots which we could keep track of.
     - Where sample is located
 
 - Flag DNA Samples as exhausted
@@ -20,6 +21,3 @@
 
 - Automated backups --> daily when used?
 
-
-
-   
