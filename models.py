@@ -16,20 +16,24 @@
 
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, String, Integer, ForeignKey, Boolean
+from sqlalchemy import Column, DateTime, String, Integer, ForeignKey, Boolean, Table
+from sqlalchemy.schema import UniqueConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 
-Base = declarative_base()
 
-
-class Model(Base):
+class Base(object):
     id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
     created = Column(DateTime, default=datetime.utcnow, nullable=False)
     last_updated = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
+Base = declarative_base(cls=Base)
 
-class Study(Model):
+study_individual_association_table = Table('study_individual_association', Base.metadata,
+                                           Column('study_id', Integer, ForeignKey('study.id')),
+                                           Column('individual_id', Integer, ForeignKey('individual.id')))
+
+class Study(Base):
     __tablename__ = 'study'
     title = Column(String, unique=True, index=True, nullable=False)
     description = Column(String)
@@ -38,21 +42,34 @@ class Study(Model):
     lead_person = Column(String, nullable=False)
 
 
-class Sample(Model):
+class Individual(Base):
+    __tablename__ = 'individual'
+    uid = Column(String, index=True, nullable=False)
+
+class Sample(Base):
     __tablename__ = 'sample'
+    __table_args__ = (UniqueConstraint('uid', 'study_id', name='uid_study_uc'),)
+
     study_id = Column(Integer, ForeignKey('study.id'), index=True, nullable=False)
     study = relationship('Study', backref="samples")
     collection_date = Column(DateTime)  # Need validation against longitudinal study bool?
 
 
-class MatrixPlate(Model):
+class MatrixPlate(Base):
     __tablename__ = 'matrix_plate'
     label = Column(String, unique=True, index=True, nullable=False)
 
 
-class MatrixTube(Model):
+class MatrixTube(Base):
     __tablename__ = 'matrix_tube'
     plate_id = Column(Integer, ForeignKey('matrix_plate.id'), index=True, nullable=False)
     plate = relationship('MatrixPlate', backref="tubes")
     barcode = Column(String, unique=True, index=True, nullable=False)
+    specimen_type = Column(Integer, ForeignKey('specimen_type.id'), nullable=False)
+
+
+class SpecimenType(Base):
+    __tablename__ = 'specimen_type'
+    label = Column(String, unique=True, index=True, nullable=False) # Should/can we make this case insensitive? i.e. DNA and dna are the same thing
+
 
