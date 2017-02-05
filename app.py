@@ -17,7 +17,7 @@
 from contextlib import contextmanager
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from models import Base, Study, Individual, Specimen, MatrixPlate, MatrixTube, SpecimenType
+from models import Base, Study, StudySubject, Specimen, MatrixPlate, MatrixTube, SpecimenType
 
 Session = sessionmaker()
 
@@ -78,46 +78,61 @@ class SampleDB(object):
             study = session.query(Study).filter(Study.short_code == short_code).one()  # type: Study
         return study
 
-    def get_study_individuals(self, short_code):
-        # type: (str) -> list[Individual]
+    def get_study_subjects(self, short_code):
+        # type: (str) -> list[StudySubject]
         """
-        Get individuals registered in a study.
+        Get study_subjects registered in a study.
         :param short_code: unique short code identifying a project.
         :return: Individual[]
         """
         with self.session_scope() as session:
-            individuals = session.query(Individual).join(Study).filter(Study.short_code == short_code).all()
-        return individuals
+            study_subjects = session.query(StudySubject).join(Study).filter(Study.short_code == short_code).all()
+        return study_subjects
 
-    def add_individual(self, uid, short_code):
-        # type: (str, str) -> Individual
+
+
+    def add_study_subject(self, uid, short_code):
+        # type: (str, str) -> StudySubject
         """
-        Add a new individual to a study.
-        :param uid: unique identifier for individual in study.
+        Add a new study_subject to a study.
+        :param uid: unique identifier for study_subject in study.
         :param short_code: unique short code that identifies the study.
         :return: Individual
         """
         with self.session_scope() as session:
             study = session.query(Study).filter(Study.short_code == short_code).one()
-            individual = Individual(uid=uid, study_id=study.id)
-            session.add(individual)
-        return individual
+            study_subject = StudySubject(uid=uid, study_id=study.id)
+            session.add(study_subject)
+        return study_subject
 
-    def add_individuals(self, uids, short_code):
-        # type: (list[str], str) -> list[Individual]
+    def add_study_subjects(self, uids, short_code):
+        # type: (list[str], str) -> list[StudySubject]
         """
-        Add a collection of individuals to a study.
+        Add a collection of study_subjects to a study.
         :param uids: list of unique individual identifiers in a study.
         :param short_code: unique short code that identifies the study.
         :return: Individual[]
         """
         with self.session_scope() as session:
             study = self.get_study(short_code)
-            individuals = [Individual(uid=_, study_id=study.id) for _ in uids]
-            map(session.add, individuals)
-        return individuals
+            study_subjects = [StudySubject(uid=_, study_id=study.id) for _ in uids]
+            map(session.add, study_subjects)
+        return study_subjects
 
+    def register_new_location(self, description):
+        pass
 
+    def get_locations(self):
+        pass
+
+    def register_new_specimen_type(self, label):
+        pass
+
+    def get_specimen_types(self):
+        pass
+
+    def add_specimen(self, uid, study_code, specimen_type):
+        pass
 
 
 

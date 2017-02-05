@@ -58,12 +58,12 @@ class Study(Base):
         return "<{}: {}>".format(self.__class__.__name__, self.short_code)
 
 
-class Individual(Base):
-    __tablename__ = 'individual'
-    __table_args__ = (UniqueConstraint('uid', 'study_id', name='individual_study_uc'),)
+class StudySubject(Base):
+    __tablename__ = 'study_subject'
+    __table_args__ = (UniqueConstraint('uid', 'study_id', name='study_subject_study_uc'),)
     uid = Column(String, index=True, nullable=False)
     study_id = Column(Integer, ForeignKey('study.id'))
-    study = relationship('Study', backref='individuals')
+    study = relationship('Study', backref='subjects')
 
     def __str__(self):
         return "<{}: {}>".format(self.__class__.__name__, self.uid)
@@ -82,17 +82,17 @@ class Specimen(Base):
 
     # Require that only one record of a specimen of a specific type for a specific individual collected
     # on a specific day may exist. Multiple storage containers may exist however, i.e. multiple aliquots of a specimen.
-    __table_args__ = (UniqueConstraint('individual_id', 'specimen_type_id', 'collection_date',
+    __table_args__ = (UniqueConstraint('study_subject_id', 'specimen_type_id', 'collection_date',
                                        name='specimen_collection_date_uc'),)
-    individual_id = Column(Integer, ForeignKey('individual.id'), index=True, nullable=False)
-    individual = relationship('Individual', backref='specimens')
+    study_subject_id = Column(Integer, ForeignKey('study_subject.id'), index=True, nullable=False)
+    study_subject = relationship('StudySubject', backref='specimens')
     specimen_type_id = Column(Integer, ForeignKey('specimen_type.id'))
     specimen_type = relationship('SpecimenType')
-    # TODO: Validate against longitudinal studies
     collection_date = Column(Date, default=None)
+    comments = Column(String)
 
     def __str__(self):
-        return "<{}: {} from {}>".format(self.__class__.__name__, self.specimen_type.label, self.individual)
+        return "<{}: {} from {}>".format(self.__class__.__name__, self.specimen_type.label, self.study_subject)
 
     @validates('collection_date')
     def validate_collection_date(self, key, collection_date):
