@@ -18,14 +18,18 @@ from datetime import datetime
 
 from sqlalchemy import Column, DateTime, Date, String, Integer, ForeignKey, Boolean, Table
 from sqlalchemy.schema import UniqueConstraint
-from sqlalchemy.orm import relationship
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship, validates
+from sqlalchemy.ext.declarative import declarative_base, declared_attr
 
 
 class Base(object):
     id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
     created = Column(DateTime, default=datetime.utcnow, nullable=False)
     last_updated = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    def __repr__(self):
+        return "<{}: [id]: {}, [created]: {}, [updated]: {}>".format(self.__class__.__name__, self.id, self.created,
+                                                                     self.last_updated)
 
 Base = declarative_base(cls=Base)
 
@@ -47,70 +51,108 @@ class Study(Base):
     title = Column(String, unique=True, index=True, nullable=False)
     description = Column(String)
     short_code = Column(String, unique=True, index=True, nullable=False)  # Should we constrain length?
-    longitudinal = Column(Boolean, nullable=False)
+    is_longitudinal = Column(Boolean, nullable=False)
     lead_person = Column(String, nullable=False)
+
+    def __str__(self):
+        return "<{}: {}>".format(self.__class__.__name__, self.short_code)
 
 
 class Individual(Base):
     __tablename__ = 'individual'
-    __table_args__ = (UniqueConstraint('id', 'study_id', name='individual_study_uc'),)
+    __table_args__ = (UniqueConstraint('uid', 'study_id', name='individual_study_uc'),)
     uid = Column(String, index=True, nullable=False)
     study_id = Column(Integer, ForeignKey('study.id'))
     study = relationship('Study', backref='individuals')
+
+    def __str__(self):
+        return "<{}: {}>".format(self.__class__.__name__, self.uid)
 
 
 class SpecimenType(Base):
     __tablename__ = 'specimen_type'
     label = Column(String, unique=True, index=True, nullable=False)
 
+    def __str__(self):
+        return "<{}: {}>".format(self.__class__.__name__, self.label)
+
 
 class Specimen(Base):
     __tablename__ = 'specimen'
-    # Require that only one record of a specimen of a specific type for a specific individual on a specific day may
-    # exist. Multiple storage containers may exist however, i.e. multiple aliquots of a specimen.
+
+    # Require that only one record of a specimen of a specific type for a specific individual collected
+    # on a specific day may exist. Multiple storage containers may exist however, i.e. multiple aliquots of a specimen.
     __table_args__ = (UniqueConstraint('individual_id', 'specimen_type_id', 'collection_date',
                                        name='specimen_collection_date_uc'),)
     individual_id = Column(Integer, ForeignKey('individual.id'), index=True, nullable=False)
     individual = relationship('Individual', backref='specimens')
     specimen_type_id = Column(Integer, ForeignKey('specimen_type.id'))
-    type = relationship('SpecimenType')
+    specimen_type = relationship('SpecimenType')
     # TODO: Validate against longitudinal studies
     collection_date = Column(Date, default=None)
+
+    def __str__(self):
+        return "<{}: {} from {}>".format(self.__class__.__name__, self.specimen_type.label, self.individual)
+
+    @validates('collection_date')
+    def validate_collection_date(self, key, collection_date):
+        if not collection_date:
+            if self.individual.study.is_longitudinal:
+                raise ValueError("Not allowed to add specimens without a collection date to a longitudinal study.")
+        return collection_date
 
 
 class Location(Base):
     __tablename__ = 'location'
     description = Column(String, unique=True, nullable=False)
 
+    def __str__(self):
+        return "<{}: {}>".format(self.__class__.__name__, self.description)
+
+
+class LocationAnnotation(object):
+    @declared_attr
+    def location_id(self):
+        return Column(Integer, ForeignKey('location.id'), index=True, nullable=False)
+
+    @declared_attr
+    def location(self):
+        return relationship('Location', backref='specimen_containers')
+
 
 class StorageContainer(Base):
+    __tablename__ = 'storage_container'
+
     discriminator = Column('type', String(255))
     __mapper_args__ = {'polymorphic_on': discriminator,
                        'polymorphic_identity': 'base_storage_container'}
+
     specimen_id = Column(Integer, ForeignKey('specimen.id'), index=True, nullable=False)
     specimen = relationship('Specimen')
-    location_id = Column(Integer, ForeignKey('location.id'), index=True, nullable=False)
-    location = relationship('Location', backref='specimen_containers')
     exhausted = Column(Boolean, nullable=False, default=False)
 
 
-class MatrixPlate(Base):
+class MatrixPlate(LocationAnnotation, Base):
     __tablename__ = 'matrix_plate'
     label = Column(String, unique=True, index=True, nullable=False)
 
+    def __str__(self):
+        return "<{} {}, Location: {}>".format(self.__class__.__name__, self.label, self.location.description)
 
-class MatrixTube(StorageContainer, Base):
+
+class MatrixTube(StorageContainer):
     __tablename__ = 'matrix_tube'
 
     # Require that only one tube can occupy a given well in a plate.
     __table_args__ = (UniqueConstraint('well_position', 'plate_id', name='well_position_plate_uc'),)
     __mapper_args__ = {'polymorphic_identity': 'matrix_tube'}
+    id = Column(Integer, ForeignKey('storage_container.id'), primary_key=True)
     plate_id = Column(Integer, ForeignKey('matrix_plate.id'), index=True, nullable=False)
     plate = relationship('MatrixPlate', backref='tubes')
     barcode = Column(String, unique=True, index=True, nullable=False)
     well_position = Column(String, nullable=False)
 
-
-
+    def __str__(self):
+        return "<{}: {} {}>".format(self.__class__.__name__, self.plate.label, self.well_position)
 
 
