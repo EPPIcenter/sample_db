@@ -89,7 +89,6 @@ class Specimen(Base):
     specimen_type_id = Column(Integer, ForeignKey('specimen_type.id'))
     specimen_type = relationship('SpecimenType')
     collection_date = Column(Date, default=None)
-    comments = Column(String)
 
     def __str__(self):
         return "<{}: {} from {}>".format(self.__class__.__name__, self.specimen_type.label, self.study_subject)
@@ -97,7 +96,7 @@ class Specimen(Base):
     @validates('collection_date')
     def validate_collection_date(self, key, collection_date):
         if not collection_date:
-            if self.individual.study.is_longitudinal:
+            if self.study_subject.study.is_longitudinal:
                 raise ValueError("Not allowed to add specimens without a collection date to a longitudinal study.")
         return collection_date
 
@@ -128,13 +127,14 @@ class StorageContainer(Base):
                        'polymorphic_identity': 'base_storage_container'}
 
     specimen_id = Column(Integer, ForeignKey('specimen.id'), index=True, nullable=False)
-    specimen = relationship('Specimen')
+    specimen = relationship('Specimen', backref='storage_container')
+    comments = Column(String)
     exhausted = Column(Boolean, nullable=False, default=False)
 
 
 class MatrixPlate(LocationAnnotation, Base):
     __tablename__ = 'matrix_plate'
-    label = Column(String, unique=True, index=True, nullable=False)
+    uid = Column(String, unique=True, index=True, nullable=False)
 
     def __str__(self):
         return "<{} {}, Location: {}>".format(self.__class__.__name__, self.label, self.location.description)
@@ -142,6 +142,17 @@ class MatrixPlate(LocationAnnotation, Base):
 
 class MatrixTube(StorageContainer):
     __tablename__ = 'matrix_tube'
+
+    well_list = []
+    for column in ('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'):
+        for row in ('01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'):
+            well_list.append(column + row)
+            well_list.append('-' + column + row)
+
+
+    #  The way this should really be implemented, but sqlite does not support deferred constraint checks.
+    # __table_args__ = (UniqueConstraint('well_position', 'plate_id', name='well_position_plate_uc', deferrable=True,
+    #                                    initially='DEFERRED'),)
 
     # Require that only one tube can occupy a given well in a plate.
     __table_args__ = (UniqueConstraint('well_position', 'plate_id', name='well_position_plate_uc'),)
@@ -155,4 +166,9 @@ class MatrixTube(StorageContainer):
     def __str__(self):
         return "<{}: {} {}>".format(self.__class__.__name__, self.plate.label, self.well_position)
 
+    @validates('well_position')
+    def validate_well_position(self, key, well_position):
+        if well_position not in self.well_list:
+            raise ValueError("{} is not a valid well position.".format(well_position))
+        return well_position
 
