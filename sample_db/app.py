@@ -164,15 +164,26 @@ class SampleDB(object):
             specimen_types = session.query(SpecimenType).all()
         return specimen_types
 
-    def _get_specimen(self, session, uid, short_code, specimen_type, collection_date):
+    @staticmethod
+    def _get_specimen(session, uid, short_code, specimen_type, collection_date):
         # type: (Session, str, str, str, str, datetime.date) -> Specimen
+        """
+        Unmanaged function to get a specimen given the provided arguments.
+        :param session: The session to use for querying the database.
+        :param uid: Unique ID identifying the study subject
+        :param short_code: Short code identifying the study the subject is a part of.
+        :param specimen_type: The label describing the specimen type.
+        :param collection_date: The date of collection. Required for longitudinal studies.
+        :return: Specimen
+        """
         specimen_query = session.query(Specimen).join(StudySubject).filter(StudySubject.uid == uid).join(Study).\
             filter(Study.short_code == short_code).join(SpecimenType).filter(SpecimenType.label == specimen_type)\
             .filter(Specimen.collection_date == collection_date)
 
         return specimen_query.one()
 
-    def _add_specimen(self, session, uid, short_code, specimen_type, collection_date=None):
+    @staticmethod
+    def _add_specimen(session, uid, short_code, specimen_type, collection_date=None):
         # type: (Session, str, str, str, datetime.date, Optional[str]) -> Specimen
         """
         Unmanaged function to add a new specimen to a study subject
@@ -184,7 +195,6 @@ class SampleDB(object):
         :param comments: Optional comment field about the specimen.
         :return: Specimen
         """
-        # with self.session_scope() as session:
         study_subject = session.query(StudySubject).join(Study).filter(Study.short_code == short_code)\
             .filter(StudySubject.uid == uid).one()
         specimen_type = session.query(SpecimenType).filter(SpecimenType.label == specimen_type).one()
@@ -192,7 +202,6 @@ class SampleDB(object):
         specimen.study_subject = study_subject
         specimen.specimen_type = specimen_type
         specimen.collection_date = collection_date
-        # session.add(specimen)
         return specimen
 
     def get_specimens(self, uid, short_code, collection_date=None):
@@ -228,7 +237,7 @@ class SampleDB(object):
                 'well_position': Well position in plate,
                 'comments': Optional comments about matrix tube
             }
-        :return:
+        :return: List of added MatrixTubes.
         """
         matrix_tubes = []
         with self.session_scope() as session:
@@ -305,3 +314,58 @@ class SampleDB(object):
                 tube.well_position = temp_matrix_tube_map[tube.barcode]
         return matrix_tubes
 
+    @staticmethod
+    def _get_matrix_tube(session, matrix_tube_barcode):
+        # type: (Session, str) -> MatrixTube
+        """
+        Unmanaged function to get a matrix tube from a barcode.
+        :param session: The session to use for querying the database.
+        :param matrix_tube_barcode: Unique barcode identifying matrix tube.
+        :return: The corresponding MatrixTube
+        """
+        matrix_tube = session.query(MatrixTube).filter(MatrixTube.barcode == matrix_tube_barcode).one()
+        return matrix_tube
+
+    def get_matrix_tube(self, matrix_tube_barcode):
+        # type: (str) -> MatrixTube
+        """
+        Get a matrix tube with a corresponding barcode.
+        :param matrix_tube_barcode: Unique barcode identifying a matrix tube.
+        :return: The corresponding MatrixTube
+        """
+        with self.session_scope() as session:
+            matrix_tube = self._get_matrix_tube(session, matrix_tube_barcode)
+        return matrix_tube
+
+    def get_matrix_tubes(self, matrix_tube_barcodes):
+        # type: (list(str)) -> list(MatrixTube)
+        """
+        Get matrix tubes from list of barcodes
+        :param matrix_tube_barcodes: List of unqiue barcodes identifying matrix tubes.
+        :return: List of MatrixTubes
+        """
+        with self.session_scope() as session:
+            matrix_tubes = [self._get_matrix_tube(session, _) for _ in matrix_tube_barcodes]
+        return matrix_tubes
+
+    def set_matrix_tube_exhausted(self, matrix_tube_barcode):
+        """
+        Set a matrix tube as exhausted.
+        :param matrix_tube_barcode: Unique barcode identifying a matrix tube.
+        :return: The corresponding MatrixTube that has been set to exhausted.
+        """
+        with self.session_scope() as session:
+            matrix_tube = self._get_matrix_tube(session, matrix_tube_barcode)
+            matrix_tube.exhausted = True
+        return matrix_tube
+
+    def unset_matrix_tube_exhausted(self, matrix_tube_barcode):
+        """
+        Unset a matrix tube as exhausted.
+        :param matrix_tube_barcode: Unique barcode identifying a matrix tube.
+        :return: The corresponding MatrixTube that has been unset as exhausted.
+        """
+        with self.session_scope() as session:
+            matrix_tube = self._get_matrix_tube(session, matrix_tube_barcode)
+            matrix_tube.exhausted = False
+        return matrix_tube

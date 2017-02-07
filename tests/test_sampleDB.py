@@ -1,11 +1,29 @@
+# sample_db -- A Sample Tracking Database
+# Copyright (C) 2017  Maxwell Murphy, Jordan Wilheim
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published
+# by the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 from __future__ import absolute_import
 
 import unittest
 from datetime import date, timedelta
 
-from app import SampleDB
-from models import *
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm.exc import NoResultFound
+
+from sample_db.models import *
+from sample_db.app import SampleDB
 
 
 class TestSampleDB(unittest.TestCase):
@@ -41,7 +59,7 @@ class TestSampleDB(unittest.TestCase):
         for ind in study_subjects:
             self.assertIn(ind.uid, uids)
 
-    def test_get_study_subjectss(self):
+    def test_get_study_subjects(self):
         study = self.db.create_study('test', 'TEST', False, 'Max', 'No Description')
         study_subject1 = self.db.add_study_subject('1', study.short_code)
         study_subject2 = self.db.add_study_subject('2', study.short_code)
@@ -245,6 +263,137 @@ class TestSampleDB(unittest.TestCase):
             if tube.barcode == '1':
                 self.assertEqual(tube.well_position, 'B02')
 
+        update_list = [
+            {'barcode': '1',
+             'plate_uid': '1',
+             'well_position': 'A02'},
+            {'barcode': '2',
+             'plate_uid': '1',
+             'well_position': 'A01'},
+        ]
+
+        self.assertRaises(IntegrityError, self.db.update_matrix_tube_locations, update_list)
+
+    def test_get_matrix_tube(self):
+        specimen_type = self.db.register_new_specimen_type('DNA')
+        study = self.db.create_study('test', 'TEST', True, 'Max', 'No Description')
+        study_subject = self.db.add_study_subject('1', study.short_code)
+        today = date.today()
+        location = self.db.register_new_location('-80 Freezer')
+
+        specimen_entries = [
+            {'uid': study_subject.uid,
+             'short_code': study.short_code,
+             'collection_date': today,
+             'specimen_type': specimen_type.label,
+             'barcode': '1',
+             'comments': 'Tube 1',
+             'well_position': 'A01'},
+            {'uid': study_subject.uid,
+             'short_code': study.short_code,
+             'collection_date': today,
+             'specimen_type': specimen_type.label,
+             'barcode': '2',
+             'comments': 'Tube 2',
+             'well_position': 'A02'},
+        ]
+
+        matrix_tubes = self.db.add_matrix_plate_with_specimens('1', location.id, specimen_entries)
+
+        matrix_tube = self.db.get_matrix_tube('1')
+        self.assertIsInstance(matrix_tube, MatrixTube)
+        self.assertEqual(matrix_tube.well_position, 'A01')
+
+        self.assertRaises(NoResultFound, self.db.get_matrix_tube, '3')
+
+    def test_get_matrix_tubes(self):
+        specimen_type = self.db.register_new_specimen_type('DNA')
+        study = self.db.create_study('test', 'TEST', True, 'Max', 'No Description')
+        study_subject = self.db.add_study_subject('1', study.short_code)
+        today = date.today()
+        location = self.db.register_new_location('-80 Freezer')
+
+        specimen_entries = [
+            {'uid': study_subject.uid,
+             'short_code': study.short_code,
+             'collection_date': today,
+             'specimen_type': specimen_type.label,
+             'barcode': '1',
+             'comments': 'Tube 1',
+             'well_position': 'A01'},
+            {'uid': study_subject.uid,
+             'short_code': study.short_code,
+             'collection_date': today,
+             'specimen_type': specimen_type.label,
+             'barcode': '2',
+             'comments': 'Tube 2',
+             'well_position': 'A02'},
+        ]
+        matrix_tubes = self.db.add_matrix_plate_with_specimens('1', location.id, specimen_entries)
+
+        matrix_tube_query = self.db.get_matrix_tubes(['1', '2'])
+        for tube in matrix_tube_query:
+            self.assertIn(tube, matrix_tubes)
+            self.assertIsInstance(tube, MatrixTube)
+
+    def test_set_matrix_tube_exhausted(self):
+        specimen_type = self.db.register_new_specimen_type('DNA')
+        study = self.db.create_study('test', 'TEST', True, 'Max', 'No Description')
+        study_subject = self.db.add_study_subject('1', study.short_code)
+        today = date.today()
+        location = self.db.register_new_location('-80 Freezer')
+
+        specimen_entries = [
+            {'uid': study_subject.uid,
+             'short_code': study.short_code,
+             'collection_date': today,
+             'specimen_type': specimen_type.label,
+             'barcode': '1',
+             'comments': 'Tube 1',
+             'well_position': 'A01'},
+            {'uid': study_subject.uid,
+             'short_code': study.short_code,
+             'collection_date': today,
+             'specimen_type': specimen_type.label,
+             'barcode': '2',
+             'comments': 'Tube 2',
+             'well_position': 'A02'},
+        ]
+        matrix_tubes = self.db.add_matrix_plate_with_specimens('1', location.id, specimen_entries)
+
+        matrix_tube = self.db.set_matrix_tube_exhausted('1')
+        self.assertTrue(matrix_tube.exhausted)
+
+    def test_unset_matrix_tube_exhausted(self):
+        specimen_type = self.db.register_new_specimen_type('DNA')
+        study = self.db.create_study('test', 'TEST', True, 'Max', 'No Description')
+        study_subject = self.db.add_study_subject('1', study.short_code)
+        today = date.today()
+        location = self.db.register_new_location('-80 Freezer')
+
+        specimen_entries = [
+            {'uid': study_subject.uid,
+             'short_code': study.short_code,
+             'collection_date': today,
+             'specimen_type': specimen_type.label,
+             'barcode': '1',
+             'comments': 'Tube 1',
+             'well_position': 'A01'},
+            {'uid': study_subject.uid,
+             'short_code': study.short_code,
+             'collection_date': today,
+             'specimen_type': specimen_type.label,
+             'barcode': '2',
+             'comments': 'Tube 2',
+             'well_position': 'A02'},
+        ]
+        self.db.add_matrix_plate_with_specimens('1', location.id, specimen_entries)
+
+        matrix_tube = self.db.set_matrix_tube_exhausted('1')
+        self.assertTrue(matrix_tube.exhausted)
+
+        matrix_tube = self.db.unset_matrix_tube_exhausted('1')
+        self.assertFalse(matrix_tube.exhausted)
 
 
 if __name__ == '__main__':
