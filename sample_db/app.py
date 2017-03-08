@@ -81,12 +81,40 @@ class SampleDB(object):
             study = session.query(Study).filter(Study.short_code == short_code).one()  # type: Study
         return study
 
+    def edit_study(self, study):
+        # type: (Study) -> Study
+        with self.session_scope() as session:
+            old_study = session.query(Study).get(study.id)
+            old_study.title = study.title
+            old_study.description = study.description
+            old_study.short_code = study.short_code
+            old_study.is_longitudinal = study.is_longitudinal
+            old_study.lead_person = study.lead_person
+        return old_study
+
+    def delete_study(self, study):
+        # type: (Study) -> boolean
+        with self.session_scope() as session:
+            s = session.query(Study).get(study.id)
+            session.delete(s)
+        return True
+
+    def get_studies(self):
+        # type () -> list[Study]
+        """
+        Get list of all studies
+        :return: List of Studies
+        """
+        with self.session_scope() as session:
+            studies = session.query(Study).all()
+        return studies
+
     def get_study_subjects(self, short_code):
         # type: (str) -> list[StudySubject]
         """
         Get study_subjects registered in a study.
         :param short_code: unique short code identifying a project.
-        :return: Individual[]
+        :return: StudySubject[]
         """
         with self.session_scope() as session:
             study_subjects = session.query(StudySubject).join(Study).filter(Study.short_code == short_code).all()
@@ -222,11 +250,12 @@ class SampleDB(object):
             specimens = specimen_query.all()
         return specimens
 
-    def add_matrix_plate_with_specimens(self, plate_uid, location_id, specimen_entries):
+    def add_matrix_plate_with_specimens(self, plate_uid, location_id, specimen_entries, create_missing_specimens=False):
         # type: (str, list(dict)) -> list(MatrixTube)
         """
         Add a new matrix plate with new specimens
-        :param plate_uid: Unique Plate ID
+        :param plate_uid: Unique Plate ID.
+        :param location_id: ID specifying the location.
         :param specimen_entries: list of specimen entries
             specimen_entry -> {
                 'uid': Unique study subject ID,
@@ -255,9 +284,17 @@ class SampleDB(object):
                 try:
                     specimen = self._get_specimen(session, uid, short_code, specimen_type, collection_date)
                 except NoResultFound:
-                    specimen = self._add_specimen(session, uid, short_code, specimen_type, collection_date)
-                    session.add(specimen)
-                    session.flush()
+                    if create_missing_specimens:
+                        try:
+                            specimen = self._add_specimen(session, uid, short_code, specimen_type, collection_date)
+                            session.add(specimen)
+                        except NoResultFound:
+                            raise ValueError("Sample {} in Study {} does not exist.".format(uid, short_code))
+                    else:
+                        raise ValueError(
+                            "{} Specimen for Sample {} does not exist in Study {}".format(specimen_type, uid,
+                                                                                          short_code))
+                session.flush()
 
                 barcode = specimen_entry['barcode']
                 well_position = specimen_entry['well_position']

@@ -28,7 +28,7 @@ from sample_db.app import SampleDB
 
 class TestSampleDB(unittest.TestCase):
     def setUp(self):
-        self.db = SampleDB('sqlite://')
+        self.db = SampleDB('sqlite:///')
 
     def test_create_study(self):
         study = self.db.create_study('test', 'TEST', False, 'Max', 'No Description')
@@ -170,7 +170,7 @@ class TestSampleDB(unittest.TestCase):
              'well_position': 'A02'},
         ]
 
-        matrix_tubes = self.db.add_matrix_plate_with_specimens('1', location.id, specimen_entries)
+        matrix_tubes = self.db.add_matrix_plate_with_specimens('1', location.id, specimen_entries, True)
 
         self.assertEqual(len(matrix_tubes), 2)
         self.assertIsInstance(matrix_tubes[0], MatrixTube)
@@ -216,8 +216,8 @@ class TestSampleDB(unittest.TestCase):
              'well_position': 'A02'},
         ]
 
-        matrix_tubes1 = self.db.add_matrix_plate_with_specimens('1', location.id, specimen_entries1)
-        matrix_tubes2 = self.db.add_matrix_plate_with_specimens('2', location.id, specimen_entries2)
+        matrix_tubes1 = self.db.add_matrix_plate_with_specimens('1', location.id, specimen_entries1, True)
+        matrix_tubes2 = self.db.add_matrix_plate_with_specimens('2', location.id, specimen_entries2, True)
 
         update_list = [
             {'barcode': '1',
@@ -298,7 +298,7 @@ class TestSampleDB(unittest.TestCase):
              'well_position': 'A02'},
         ]
 
-        matrix_tubes = self.db.add_matrix_plate_with_specimens('1', location.id, specimen_entries)
+        matrix_tubes = self.db.add_matrix_plate_with_specimens('1', location.id, specimen_entries, True)
 
         matrix_tube = self.db.get_matrix_tube('1')
         self.assertIsInstance(matrix_tube, MatrixTube)
@@ -329,7 +329,7 @@ class TestSampleDB(unittest.TestCase):
              'comments': 'Tube 2',
              'well_position': 'A02'},
         ]
-        matrix_tubes = self.db.add_matrix_plate_with_specimens('1', location.id, specimen_entries)
+        matrix_tubes = self.db.add_matrix_plate_with_specimens('1', location.id, specimen_entries, True)
 
         matrix_tube_query = self.db.get_matrix_tubes(['1', '2'])
         for tube in matrix_tube_query:
@@ -359,10 +359,13 @@ class TestSampleDB(unittest.TestCase):
              'comments': 'Tube 2',
              'well_position': 'A02'},
         ]
-        matrix_tubes = self.db.add_matrix_plate_with_specimens('1', location.id, specimen_entries)
 
-        matrix_tube = self.db.set_matrix_tube_exhausted('1')
-        self.assertTrue(matrix_tube.exhausted)
+        matrix_tubes = self.db.add_matrix_plate_with_specimens('1', location.id, specimen_entries, True)
+        self.db.set_matrix_tube_exhausted('1')
+        self.db.set_matrix_tube_exhausted('2')
+
+        for matrix_tube in matrix_tubes:
+            self.assertTrue(matrix_tube.exhausted)
 
     def test_unset_matrix_tube_exhausted(self):
         specimen_type = self.db.register_new_specimen_type('DNA')
@@ -387,13 +390,14 @@ class TestSampleDB(unittest.TestCase):
              'comments': 'Tube 2',
              'well_position': 'A02'},
         ]
-        self.db.add_matrix_plate_with_specimens('1', location.id, specimen_entries)
 
-        matrix_tube = self.db.set_matrix_tube_exhausted('1')
-        self.assertTrue(matrix_tube.exhausted)
+        matrix_tubes = self.db.add_matrix_plate_with_specimens('1', location.id, specimen_entries, True)
 
-        matrix_tube = self.db.unset_matrix_tube_exhausted('1')
-        self.assertFalse(matrix_tube.exhausted)
+        for matrix_tube in matrix_tubes:
+            self.db.set_matrix_tube_exhausted(matrix_tube.barcode)
+            self.assertTrue(matrix_tube.exhausted)
+            self.db.unset_matrix_tube_exhausted(matrix_tube.barcode)
+            self.assertFalse(matrix_tube.exhausted)
 
 
 if __name__ == '__main__':

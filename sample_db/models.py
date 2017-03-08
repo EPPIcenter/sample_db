@@ -57,6 +57,34 @@ class Study(Base):
     def __str__(self):
         return "<{}: {}>".format(self.__class__.__name__, self.short_code)
 
+    @validates("title")
+    def validate_title(self, key, title):
+        if title == "":
+            raise ValueError("Study title cannot be blank")
+        return title
+
+    @validates("short_code")
+    def validate_short_code(self, key, short_code):
+        if short_code == "":
+            raise ValueError("Study short code cannot be blank")
+        return short_code
+
+    @validates("lead_person")
+    def validate_lead_person(self, key, lead_person):
+        if lead_person == "":
+            raise ValueError("Study lead person cannot be blank")
+        return lead_person
+
+    @validates("is_longitudinal")
+    def validate_is_longitudinal(self, key, is_longitudinal):
+        if not self.is_longitudinal and is_longitudinal:
+            for subject in self.subjects:
+                for specimen in subject.specimens:
+                    if not specimen.collection_date:
+                        raise ValueError("Cannot make study longitudinal, contains specimens without collection dates.")
+        return is_longitudinal
+
+
 
 class StudySubject(Base):
     __tablename__ = 'study_subject'
@@ -75,6 +103,12 @@ class SpecimenType(Base):
 
     def __str__(self):
         return "<{}: {}>".format(self.__class__.__name__, self.label)
+
+    @validates('label')
+    def validate_label(self, key, label):
+        if label == "":
+            raise ValueError("Specimen Label cannot be blank")
+        return label
 
 
 class Specimen(Base):
@@ -108,6 +142,12 @@ class Location(Base):
     def __str__(self):
         return "<{}: {}>".format(self.__class__.__name__, self.description)
 
+    @validates('description')
+    def validate_description(self, key, description):
+        if description == "":
+            raise ValueError("Location cannot be blank")
+        return description
+
 
 class LocationAnnotation(object):
     @declared_attr
@@ -118,6 +158,9 @@ class LocationAnnotation(object):
     def location(self):
         return relationship('Location', backref='specimen_containers')
 
+    def __str__(self):
+        return "<{} ["
+
 
 class StorageContainer(Base):
     __tablename__ = 'storage_container'
@@ -127,7 +170,7 @@ class StorageContainer(Base):
                        'polymorphic_identity': 'base_storage_container'}
 
     specimen_id = Column(Integer, ForeignKey('specimen.id'), index=True, nullable=False)
-    specimen = relationship('Specimen', backref='storage_container')
+    specimen = relationship('Specimen', backref='storage_containers')
     comments = Column(String)
     exhausted = Column(Boolean, nullable=False, default=False)
 
@@ -137,18 +180,17 @@ class MatrixPlate(LocationAnnotation, Base):
     uid = Column(String, unique=True, index=True, nullable=False)
 
     def __str__(self):
-        return "<{} {}, Location: {}>".format(self.__class__.__name__, self.label, self.location.description)
+        return "<{} {}, Location: {}>".format(self.__class__.__name__, self.uid, self.location.description)
 
 
 class MatrixTube(StorageContainer):
     __tablename__ = 'matrix_tube'
 
-    well_list = []
+    well_list = set()
     for column in ('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'):
         for row in ('01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'):
-            well_list.append(column + row)
-            well_list.append('-' + column + row)
-
+            well_list.add(column + row)
+            well_list.add('-' + column + row)
 
     #  The way this should really be implemented, but sqlite does not support deferred constraint checks.
     # __table_args__ = (UniqueConstraint('well_position', 'plate_id', name='well_position_plate_uc', deferrable=True,
@@ -157,6 +199,7 @@ class MatrixTube(StorageContainer):
     # Require that only one tube can occupy a given well in a plate.
     __table_args__ = (UniqueConstraint('well_position', 'plate_id', name='well_position_plate_uc'),)
     __mapper_args__ = {'polymorphic_identity': 'matrix_tube'}
+
     id = Column(Integer, ForeignKey('storage_container.id'), primary_key=True)
     plate_id = Column(Integer, ForeignKey('matrix_plate.id'), index=True, nullable=False)
     plate = relationship('MatrixPlate', backref='tubes')
