@@ -1,0 +1,143 @@
+import { createSelector } from 'reselect';
+import { ActionReducer, Action } from '@ngrx/store';
+import { Study } from '../models/study';
+import * as study from '../actions/study';
+
+export interface State {
+  deleteError: string | null;
+  createError: string | null;
+  updateError: string | null;
+  ids: string[];
+  entities: { [id: string]: Study };
+  selectedStudyId: string | null;
+  activeSubjectId: string | null;
+};
+
+export const inititalState: State = {
+  deleteError: null,
+  createError: null,
+  updateError: null,
+  ids: [],
+  entities: {},
+  selectedStudyId: null,
+  activeSubjectId: null
+};
+
+export function reducer(state = inititalState, action: study.Actions): State {
+  switch (action.type) {
+    case study.LOAD_SUCCESS:
+      const studies = action.payload;
+      const newStudies = studies.filter(study => !state.entities[study.id]);
+
+      const newStudyIds = newStudies.map(study => study.id);
+      const newStudyEntities = newStudies.reduce((entities: { [id: string]: Study }, study: Study) => {
+        return Object.assign(entities, {
+          [study.id]: study
+        });
+      }, {});
+
+      return {
+        deleteError: null,
+        createError: null,
+        updateError: null,
+        ids: [ ...state.ids, ...newStudyIds ],
+        entities: Object.assign({}, state.entities, newStudyEntities),
+        selectedStudyId: state.selectedStudyId,
+        activeSubjectId: null
+      };
+
+    case study.LOAD_ONE:
+      const updatedStudy = action.payload.study;
+
+      const otherIds = state.ids.filter(id => id !== updatedStudy.id);
+      const updatedEntity = {[updatedStudy.id]: updatedStudy};
+
+      return Object.assign({}, state, {
+        ids: [...otherIds, updatedStudy.id],
+        entities: Object.assign({}, state.entities, updatedEntity),
+      });
+
+    case study.DELETE_SUCCESS:
+      const deletedId = action.payload;
+      const notDeletedStudyIds = state.ids.filter((id: string) => id !== deletedId);
+      const notDeletedStudies = notDeletedStudyIds.map(id => state.entities[id]);
+
+      const notDeletedStudyEntities = notDeletedStudies.reduce((entities: { [id: string]: Study }, study: Study) => {
+        return Object.assign(entities, {
+          [study.id]: study
+        });
+      }, {});
+
+      return {
+        deleteError: null,
+        createError: state.createError,
+        updateError: state.updateError,
+        ids: notDeletedStudyIds,
+        entities: notDeletedStudyEntities,
+        selectedStudyId: state.selectedStudyId,
+        activeSubjectId: null
+      };
+
+    case study.DELETE_FAILURE:
+      const deleteError = action.payload;
+
+      return Object.assign({}, state, {deleteError: deleteError});
+
+    case study.CREATE_FAILURE:
+      const createError = action.payload;
+
+      return Object.assign({}, state, {createError: createError});
+
+    case study.UPDATE_FAILURE:
+      const updateError = action.payload;
+
+      return Object.assign({}, state, {updateError: updateError});
+
+    case study.SELECT:
+      const id = action.payload;
+
+      return Object.assign({}, state, {selectedStudyId: id});
+
+    case study.ACTIVATE_SUBJECT:
+      const subjectId = action.payload;
+
+      return Object.assign({}, state, {activeSubjectId: subjectId});
+
+    case study.DEACTIVATE_SUBJECT:
+      return Object.assign({}, state, {activeSubjectId: null});
+
+    default:
+      return state;
+  }
+};
+
+
+export const getEntities = (state: State) => state.entities;
+
+export const getIds = (state: State) => state.ids;
+
+export const getSelectedId = (state: State) => state.selectedStudyId;
+
+export const getCreateError = (state: State) => state.createError;
+
+export const getDeleteError = (state: State) => state.deleteError;
+
+export const getUpdateError = (state: State) => state.updateError;
+
+export const getActiveSubjectId = (state: State) => state.activeSubjectId;
+
+export const getSelected = createSelector(getEntities, getSelectedId, (entities, selectedId) => {
+  return entities[selectedId];
+});
+
+export const getSelectedTitle = createSelector(getSelected, (selected) => {
+  return selected ? selected.title : undefined;
+});
+
+export const getSelectedSubjectIds = createSelector(getSelected, (selected) => {
+  return selected ? selected.subjects : [];
+});
+
+export const getAll = createSelector(getEntities, getIds, (entities, ids) => {
+  return ids.map(id => entities[id]);
+});
