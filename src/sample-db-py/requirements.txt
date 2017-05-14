@@ -9,6 +9,7 @@ MarkupSafe==1.0
 marshmallow==2.13.5
 marshmallow-sqlalchemy==0.13.1
 packaging==16.8
+PyInstaller==3.2.1
 pyparsing==2.2.0
 six==1.10.0
 SQLAlchemy==1.1.9
