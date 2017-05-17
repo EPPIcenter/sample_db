@@ -368,7 +368,7 @@ def upload_plate():
     except IntegrityError as e:
         raise InvalidUsage(parse_integrity_error(e), status_code=403)
     except NoResultFound:
-        raise InvalidUsage("File Malformed. Are all study codes valid?", status_code=403)
+        raise InvalidUsage("File Malformed. Are all study codes valid and specimen types registered?", status_code=403)
     except DateParseError as e:
         raise InvalidUsage(e.message, status_code=403)
     except ValueError as e:

@@ -184,7 +184,7 @@ export const getUpdateMatrixPlateError = createSelector(getMatrixPlateState, fro
 export const getUploadMatrixPlateError = createSelector(getMatrixPlateState, fromMatrixPlate.getUploadError);
 export const getDeleteMatrixPlateError = createSelector(getMatrixPlateState, fromMatrixPlate.getDeleteError);
 export const getSelectedMatrixPlateTubes = createSelector(getSelectedMatrixPlate, getMatrixTubeEntities, (plate, tubes) => {
-  return plate.tubes.map(tubeId => tubes[tubeId])
+  return plate ? plate.tubes.map(tubeId => tubes[tubeId]) : [];
 });
 
 export const getSelectedMatrixPlateSpecimens = createSelector(getSelectedMatrixPlateTubes, getSpecimenEntities, (tubes, entities) => {
