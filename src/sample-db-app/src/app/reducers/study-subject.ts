@@ -20,10 +20,9 @@ export function reducer(state = initialState, action: study.Actions | plate.Acti
     case study.LOAD_ONE:
     case plate.LOAD_ONE:
       const studySubjects = action.payload.study_subject;
-      const newStudySubjects = studySubjects ? studySubjects.filter(studySubject => !state.entities[studySubject.id]) : [];
 
-      const newStudySubjectIds = newStudySubjects.map(studySubject => studySubject.id);
-      const newStudySubjectEntities = newStudySubjects.reduce((entities: { [id: string]: StudySubject }, studySubject: StudySubject) => {
+      const newStudySubjectIds = studySubjects.map(studySubject => studySubject.id).filter(id => !state.entities[id]);
+      const studySubjectEntities = studySubjects.reduce((entities: { [id: string]: StudySubject }, studySubject: StudySubject) => {
         return Object.assign(entities, {
           [studySubject.id]: studySubject
         });
@@ -31,7 +30,7 @@ export function reducer(state = initialState, action: study.Actions | plate.Acti
 
       return {
         ids: [...state.ids, ...newStudySubjectIds],
-        entities: Object.assign({}, state.entities, newStudySubjectEntities)
+        entities: Object.assign({}, state.entities, studySubjectEntities)
       };
 
     case bulk.DELETE_BARCODES_SUCCESS:
