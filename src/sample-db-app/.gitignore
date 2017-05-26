@@ -2,6 +2,7 @@
 
 # compiled output
 /dist
+/win-dist
 /tmp
 /out-tsc
 
