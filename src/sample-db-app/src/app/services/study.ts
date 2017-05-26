@@ -60,20 +60,28 @@ export class StudyService {
       });
   }
 
-  createStudy(study: Study): Observable<Study> {
+  createStudy(study: Study): Observable<StudyEntry> {
     return this.http.post(`${this.API_PATH}/study`, {'study': study}, {headers: this.headers})
       .map(res => res.json())
       .map(res => {
-        if (Object.keys(res.error).length === 0) {
+        if (Object.keys(res.error.study).length === 0 &&
+            Object.keys(res.error.specimen).length === 0 &&
+            Object.keys(res.error.study_subject).length === 0) {
           return res.data;
         } else {
           throw(new Error(JSON.stringify(res.error)));
         }
       })
-      .map((study: Study) => {
-        study.created = new Date(study.created);
-        study.last_updated = new Date(study.last_updated);
-        return study;
+      .map((studyEntry: StudyEntry) => {
+        studyEntry.study.created = new Date(studyEntry.study.created);
+        studyEntry.study.last_updated = new Date(studyEntry.study.last_updated);
+        studyEntry.specimen = studyEntry.specimen.map(specimen => {
+          if (specimen.collection_date) {
+            specimen.collection_date = new Date(specimen.collection_date);
+          }
+          return specimen;
+        });
+        return studyEntry;
       });
   }
 
@@ -89,7 +97,7 @@ export class StudyService {
       });
   }
 
-  updateStudy(study: Study): Observable<Study> {
+  updateStudy(study: Study): Observable<StudyEntry> {
     return this.createStudy(study);
   }
 

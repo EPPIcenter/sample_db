@@ -107,16 +107,35 @@ def create_or_update_study():
             if not study.get('id'):
                 try:
                     study = db.create_study(**study)
+                    study_subjects = []
+                    specimens = []
+                    matrix_tubes = []
                 except IntegrityError as e:
                     raise InvalidUsage(parse_integrity_error(e), status_code=403)
             else:
                 try:
                     study_id = study.pop('id')
-                    study = db.update_study(study_id, study)
+                    study, study_subjects, specimens, matrix_tubes = db.update_study(study_id, study)
                 except IntegrityError as e:
                     raise InvalidUsage(parse_integrity_error(e), status_code=403)
-            d, err = study_schema.dump(study)
-            res = jsonify(sucess=True, data=d, error=err)
+            study_entries, study_error = study_schema.dump(study)
+            study_subject_entries, study_subject_error = study_subject_schema.dump(study_subjects, many=True)
+            specimen_entries, specimen_error = specimen_schema.dump(specimens, many=True)
+            matrix_tube_entries, matrix_tube_error = matrix_tube_schema.dump(matrix_tubes, many=True)
+            print study_subject_entries, specimen_entries, matrix_tube_entries
+            d = {
+                'study': study_entries,
+                'study_subject': study_subject_entries,
+                'specimen': specimen_entries,
+                'matrix_tube': matrix_tube_entries
+            }
+            err = {
+                'study': study_error,
+                'study_subject': study_subject_error,
+                'specimen': specimen_error,
+                'matrix_tube': matrix_tube_error
+            }
+            res = jsonify(data=d, error=err)
             return res
         except IntegrityError as e:
             raise InvalidUsage(parse_integrity_error(e), status_code=403)

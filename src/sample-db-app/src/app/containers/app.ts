@@ -48,12 +48,12 @@ export class AppComponent {
   showSidenav$: Observable<boolean>;
 
   toolbarButtons = [
-    {
-      icon: 'arrow_back',
-      action: back(),
-      color: 'accent',
-      tooltip: 'Go Back'
-    }
+  //   {
+  //     icon: 'arrow_back',
+  //     action: back(),
+  //     color: 'accent',
+  //     tooltip: 'Go Back'
+  //   }
   ];
 
   constructor(private store: Store<fromRoot.State>) {

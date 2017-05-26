@@ -13,7 +13,7 @@ import { empty } from 'rxjs/observable/empty';
 import { of } from 'rxjs/observable/of';
 import { go, replace, search, show, back, forward } from '@ngrx/router-store';
 
-import { Study } from '../models/study';
+import { Study, StudyEntry } from '../models/study';
 import { StudyService } from '../services/study';
 import * as study from '../actions/study';
 
@@ -73,8 +73,8 @@ export class StudyEffects {
     .map(toPayload)
     .switchMap(payload => {
       return this.studyService.updateStudy(payload)
-        .mergeMap((updatedStudy: Study) => {
-          return [ new study.LoadOneAction({study: updatedStudy}), go('study') ]
+        .mergeMap((updatedStudyEntry: StudyEntry) => {
+          return [ new study.LoadOneAction(updatedStudyEntry), go('study') ];
         })
         .catch(err => {
           if (err.status < 500 && err.status > 400) {

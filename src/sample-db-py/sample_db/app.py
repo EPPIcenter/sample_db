@@ -72,7 +72,7 @@ class SampleDB(object):
         return study
 
     def get_study(self, study_id):
-        # type: (int) -> Tuple[Study, List[StudySubject], List[Specimen]]
+        # type: (int) -> Tuple[Study, List[StudySubject], List[Specimen], List[MatrixTube]]
         """
         Get a study
         :param study_id: study ID
@@ -91,7 +91,7 @@ class SampleDB(object):
         return study
 
     def edit_study(self, study):
-        # type: (Study) -> Study
+        # type: (Study) -> Tuple[Study, List[StudySubject], List[Specimen], List[MatrixTube]]
         with self._session_scope() as session:
             old_study = session.query(Study).get(study.id)
             old_study.title = study.title
@@ -99,20 +99,28 @@ class SampleDB(object):
             old_study.short_code = study.short_code
             old_study.is_longitudinal = study.is_longitudinal
             old_study.lead_person = study.lead_person
-        return old_study
+            study_subjects = session.query(StudySubject).filter(StudySubject.study_id == old_study.id).all() # type: list[StudySubject]
+            specimens = session.query(Specimen).join(StudySubject).filter(StudySubject.study_id == old_study.id).all() # type: list[Specimen]
+            matrix_tubes = session.query(MatrixTube).join(Specimen).join(StudySubject).filter(StudySubject.study_id == old_study.id).all()
+        return old_study, study_subjects, specimens, matrix_tubes
 
     def update_study(self, id, d):
-        # type: (int, dict) -> Study
+        # type: (int, dict) -> Tuple[Study, List[StudySubject], List[Specimen], List[MatrixTube]]
         with self._session_scope() as session:
             with session.no_autoflush:
                 study = session.query(Study).get(id)
                 study.update(d)
-        return study
+            study_subjects = session.query(StudySubject).filter(
+                StudySubject.study_id == study.id).all()  # type: list[StudySubject]
+            specimens = session.query(Specimen).join(StudySubject).filter(
+                StudySubject.study_id == study.id).all()  # type: list[Specimen]
+            matrix_tubes = session.query(MatrixTube).join(Specimen).join(StudySubject).filter(
+                StudySubject.study_id == study.id).all()
+        return study, study_subjects, specimens, matrix_tubes
 
     def delete_study(self, study):
         # type: (Study) -> boolean
         with self._session_scope() as session:
-            print study
             s = session.query(Study).get(study.id)
             session.delete(s)
         return True
