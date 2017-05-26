@@ -1,0 +1,10 @@
+name: sampledb
+dependencies:
+  - python=2.7
+  - flask
+  - greenlet
+  - sqlalchemy
+  - gevent
+  - pip:
+      - marshmallow
+      - marshmallow-sqlalchemy

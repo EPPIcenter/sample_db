@@ -1,4 +1,5 @@
 #!/bin/bash
+
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 BUILD="$DIR"/build/app
 DB_BUILD_DIR="$BUILD"/db-server
@@ -15,7 +16,6 @@ rm -r "$DB_BUILD_DIR"/*
 rm -r "$APP_BUILD_DIR"/*
 
 echo "Building Application..."
-
 "$DB_SRC_DIR"/build.sh &
 "$APP_SRC_DIR"/build.sh &
 wait
