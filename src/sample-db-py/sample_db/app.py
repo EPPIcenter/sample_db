@@ -72,7 +72,7 @@ class SampleDB(object):
         return study
 
     def get_study(self, study_id):
-        # type: (int) -> Tuple[Study, List[StudySubject], List[Specimen], List[MatrixTube]]
+        # type: (int) -> tuple[Study, list[StudySubject], list[Specimen], list[MatrixTube]]
         """
         Get a study
         :param study_id: study ID
@@ -91,7 +91,7 @@ class SampleDB(object):
         return study
 
     def edit_study(self, study):
-        # type: (Study) -> Tuple[Study, List[StudySubject], List[Specimen], List[MatrixTube]]
+        # type: (Study) -> tuple[Study, list[StudySubject], list[Specimen], list[MatrixTube]]
         with self._session_scope() as session:
             old_study = session.query(Study).get(study.id)
             old_study.title = study.title
@@ -105,7 +105,7 @@ class SampleDB(object):
         return old_study, study_subjects, specimens, matrix_tubes
 
     def update_study(self, id, d):
-        # type: (int, dict) -> Tuple[Study, List[StudySubject], List[Specimen], List[MatrixTube]]
+        # type: (int, dict) -> tuple[Study, list[StudySubject], list[Specimen], list[MatrixTube]]
         with self._session_scope() as session:
             with session.no_autoflush:
                 study = session.query(Study).get(id)
@@ -178,6 +178,17 @@ class SampleDB(object):
             study_subjects = [StudySubject(uid=_, study_id=study.id) for _ in uids]
             map(session.add, study_subjects)
         return study_subjects
+
+    def delete_study_subject(self, study_subject_id):
+        with self._session_scope() as session:
+            study_subject = session.query(StudySubject).get(study_subject_id) # type: StudySubject
+            if not study_subject:
+                raise NoResultFound
+            if study_subject.specimens:
+                raise ValueError("Cannot delete study subject with associated specimens.")
+            session.delete(study_subject)
+        return True
+
 
     def register_new_location(self, description, **kwargs):
         # type: (str) -> Location

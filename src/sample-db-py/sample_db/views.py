@@ -122,7 +122,6 @@ def create_or_update_study():
             study_subject_entries, study_subject_error = study_subject_schema.dump(study_subjects, many=True)
             specimen_entries, specimen_error = specimen_schema.dump(specimens, many=True)
             matrix_tube_entries, matrix_tube_error = matrix_tube_schema.dump(matrix_tubes, many=True)
-            print study_subject_entries, specimen_entries, matrix_tube_entries
             d = {
                 'study': study_entries,
                 'study_subject': study_subject_entries,
@@ -313,6 +312,17 @@ def delete_specimen_type(specimen_type_id):
             raise InvalidUsage(parse_integrity_error(e), status_code=403)
 
 
+@app.route('/study-subject/<int:study_subject_id>', methods=['DELETE'])
+def delete_study_subject(study_subject_id):
+    try:
+        db.delete_study_subject(study_subject_id)
+        return jsonify(success=True, error={})
+    except ValueError as e:
+        raise InvalidUsage(e.args[0], status_code=403)
+    except NoResultFound:
+        raise InvalidUsage("Study Subject Does Not Exist", status_code=404)
+
+
 @app.route('/plate', methods=['GET'])
 def get_plates():
     plates = db.get_matrix_plates()
@@ -421,7 +431,7 @@ def update_plates():
         }
         return jsonify(data=d, error=err)
     except KeyError:
-        raise InvalidUsage("File Malformed, should be .csv, filenames should be plate UID, and header should contain"
+        raise InvalidUsage("File Malformed, should be .csv, file names should be plate UID, and header should contain"
                            " ['Well', 'Barcode', 'Comments']", status_code=403)
     except IntegrityError:
         raise InvalidUsage("Tube Position Conflict. Make sure all plates with moved tubes are being updated.", status_code=403)

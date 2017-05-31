@@ -15,7 +15,9 @@ import { SpecimenType } from '../../models/specimen-type';
   selector: 'sdb-selected-study-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-  <sdb-study-detail (deleteButton)="deleteStudy()" (editButton)="editStudy()" [study]="study$ | async"
+  <sdb-study-detail (deleteButton)="deleteStudy()" (editButton)="editStudy()"
+    [study]="study$ | async"
+    [deleteSubjectError]="deleteSubjectError$ | async"
     [deleteError]="deleteError$ | async"
     [studySubjects]="studySubjects$ | async"
     [activatedStudySubject]="activatedStudySubject$ | async"
@@ -25,7 +27,8 @@ import { SpecimenType } from '../../models/specimen-type';
     [locations]="locations$ | async"
     [specimenTypes]="specimenTypes$ | async"
     (activateStudySubject)="activateStudySubject($event)"
-    (deactivateStudySubject)="deactivateStudySubject()">
+    (deactivateStudySubject)="deactivateStudySubject()"
+    (deleteStudySubject)="deleteStudySubject($event)">
   </sdb-study-detail>
   `
 })
@@ -40,6 +43,7 @@ export class SelectedStudyPageComponent {
   specimenTypes$: Observable<{[id: string]: SpecimenType}>;
   studyId$: Observable<string>;
   deleteError$: Observable<string>;
+  deleteSubjectError$: Observable<string>;
 
   constructor(private store: Store<fromRoot.State>) {
     this.study$ = store.select(fromRoot.getSelectedStudy);
@@ -52,6 +56,7 @@ export class SelectedStudyPageComponent {
     this.specimenTypes$ = store.select(fromRoot.getSpecimenTypeEntities);
     this.studyId$ = store.select(fromRoot.getSelectedStudyId);
     this.deleteError$ = store.select(fromRoot.getDeleteStudyError);
+    this.deleteSubjectError$ = store.select(fromRoot.getDeleteSubjectError);
   }
 
   deleteStudy() {
@@ -72,6 +77,10 @@ export class SelectedStudyPageComponent {
 
   deactivateStudySubject() {
     this.store.dispatch(new study.DeactivateSubjectAction());
+  }
+
+  deleteStudySubject(id) {
+    this.store.dispatch(new study.DeleteSubjectAction(id));
   }
 
 }

@@ -89,6 +89,7 @@ export const getSelectedStudySubjectIds = createSelector(getStudyState, fromStud
 export const getAllStudies = createSelector(getStudyState, fromStudy.getAll);
 export const getCreateStudyError = createSelector(getStudyState, fromStudy.getCreateError);
 export const getDeleteStudyError = createSelector(getStudyState, fromStudy.getDeleteError);
+export const getDeleteSubjectError = createSelector(getStudyState, fromStudy.getDeleteSubjectError);
 export const getUpdateStudyError = createSelector(getStudyState, fromStudy.getUpdateError);
 export const getActivatedStudySubjectId = createSelector(getStudyState, fromStudy.getActiveSubjectId);
 export const getActivatedStudySubject = createSelector(getActivatedStudySubjectId, getStudySubjectEntities, (id, entities) => {

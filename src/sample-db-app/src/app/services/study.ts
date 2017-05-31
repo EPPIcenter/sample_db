@@ -27,7 +27,8 @@ export class StudyService {
         studies.forEach(study => {
           if (study.created) {
             study.created = new Date(study.created);
-            study.last_updated = new Date(study.last_updated)
+            study.last_updated = new Date(study.last_updated);
+            study.subjects = study.subjects.map(id => String(id));
           }
         });
         return studies;
@@ -56,6 +57,7 @@ export class StudyService {
           }
           return specimen;
         });
+        studyEntry.study.subjects = studyEntry.study.subjects.map(id => String(id));
         return studyEntry;
       });
   }
@@ -99,6 +101,18 @@ export class StudyService {
 
   updateStudy(study: Study): Observable<StudyEntry> {
     return this.createStudy(study);
+  }
+
+  deleteStudySubject(id: number): Observable<boolean> {
+    return this.http.delete(`${this.API_PATH}/study-subject/${id}`)
+      .map(res => res.json())
+      .map(res => {
+        if (Object.keys(res.error).length === 0) {
+          return res.success;
+        } else {
+          throw(new Error(JSON.stringify(res.error)));
+        }
+      });
   }
 
 

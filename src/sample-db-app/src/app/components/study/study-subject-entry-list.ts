@@ -23,8 +23,12 @@ import { SpecimenType } from '../../models/specimen-type';
         </md-card-title>
         <md-card-subtitle>
           <small class="date-added">Date Added: {{ dateAdded | date}}</small>
+          <p class="error" *ngIf="deleteSubjectError"><span><small>{{deleteSubjectError}}</small></span></p>
         </md-card-subtitle>
         <div class="control-buttons">
+          <button md-mini-fab class="delete-button" (click)="deleteSubject()">
+            <md-icon>close</md-icon>
+          </button>
           <button md-mini-fab class="back-button" (click)="deactivateStudySubject.emit()">
             <md-icon>arrow_back</md-icon>
           </button>
@@ -52,11 +56,17 @@ import { SpecimenType } from '../../models/specimen-type';
     md-card-title {
       width: 100%
     }
+    button {
+      margin: 5px;
+    }
     .control-buttons {
-      width: 40px;
+      width: 120px;
     }
     .date-added {
       color: grey;
+    }
+    .error {
+      color: red;
     }
   `]
 })
@@ -67,9 +77,11 @@ export class StudySubjectEntryListComponent {
   @Input() matrixTubes: MatrixTube[];
   @Input() matrixPlates: {[id: string]: MatrixPlate};
   @Input() locations: {[id: string]: Location};
+  @Input() deleteSubjectError: string | null;
   @Input() specimenTypes: {[id: string]: SpecimenType};
   @Output() activateStudySubject = new EventEmitter();
   @Output() deactivateStudySubject = new EventEmitter();
+  @Output() deleteStudySubject = new EventEmitter();
 
   get uid() {
     return this.activatedStudySubject.uid;
@@ -106,6 +118,10 @@ export class StudySubjectEntryListComponent {
   dateCollected(t: MatrixTube) {
     const specimen = this.specimens[t.specimen];
     return specimen.collection_date;
+  }
+
+  deleteSubject() {
+    this.deleteStudySubject.emit(this.activatedStudySubject.id);
   }
 
 }

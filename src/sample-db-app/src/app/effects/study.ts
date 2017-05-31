@@ -85,5 +85,23 @@ export class StudyEffects {
         })
     });
 
+  @Effect()
+  deleteSubject$: Observable<Action> = this.actions$
+    .ofType(study.DELETE_SUBJECT)
+    .map(toPayload)
+    .switchMap(payload => {
+      return this.studyService.deleteStudySubject(payload)
+        .mergeMap(() => {
+          return [ new study.DeleteSubjectSuccessAction(payload)];
+        })
+        .catch(err => {
+          if (err.status < 500 && err.status > 400) {
+            return of(new study.DeleteSubjectFailureAction(JSON.parse(err._body).message));
+          } else {
+            throw(new Error(err));
+          }
+        })
+    })
+
   constructor(private actions$: Actions, private studyService: StudyService) { }
 }

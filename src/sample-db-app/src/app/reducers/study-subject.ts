@@ -51,6 +51,20 @@ export function reducer(state = initialState, action: study.Actions | plate.Acti
         entities: updatedStudySubjectEntities
       });
 
+    case study.DELETE_SUBJECT_SUCCESS:
+      const deletedStudySubjectId = action.payload;
+      const remainingStudySubjectIds = state.ids.filter(id => id !== deletedStudySubjectId);
+      const remainingStudySubjectEntities = remainingStudySubjectIds.map(id => state.entities[id])
+        .reduce((entities: { [id: string]: StudySubject }, studySubject: StudySubject) => {
+          return Object.assign(entities, {
+            [studySubject.id]: studySubject
+          });
+        }, {});
+      return {
+        ids: remainingStudySubjectIds,
+        entities: remainingStudySubjectEntities
+      };
+
     default:
       return state;
   }

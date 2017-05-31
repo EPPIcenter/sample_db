@@ -39,8 +39,10 @@ import { SpecimenType } from '../../models/specimen-type';
             [matrixPlates]="matrixPlates"
             [locations]="locations"
             [specimenTypes]="specimenTypes"
+            [deleteSubjectError]="deleteSubjectError"
             (activateStudySubject)="activateStudySubject.emit($event)"
-            (deactivateStudySubject)="deactivateStudySubject.emit()">
+            (deactivateStudySubject)="deactivateStudySubject.emit()"
+            (deleteStudySubject)="deleteStudySubject.emit($event)">
           </sdb-study-subject-entry-list>
         </div>
       </md-card-content>
@@ -101,8 +103,10 @@ export class StudyDetailComponent {
   @Output() deleteButton = new EventEmitter();
   @Output() activateStudySubject = new EventEmitter();
   @Output() deactivateStudySubject = new EventEmitter();
+  @Output() deleteStudySubject = new EventEmitter();
   @Input() study: Study;
   @Input() deleteError: string;
+  @Input() deleteSubjectError: string;
   @Input() studySubjects: StudySubject[];
   @Input() activatedStudySubject: StudySubject;
   @Input() specimens: {[id: string]: Specimen};

@@ -5,6 +5,7 @@ import * as study from '../actions/study';
 
 export interface State {
   deleteError: string | null;
+  deleteSubjectError: string | null;
   createError: string | null;
   updateError: string | null;
   ids: string[];
@@ -15,6 +16,7 @@ export interface State {
 
 export const inititalState: State = {
   deleteError: null,
+  deleteSubjectError: null,
   createError: null,
   updateError: null,
   ids: [],
@@ -38,6 +40,7 @@ export function reducer(state = inititalState, action: study.Actions): State {
 
       return {
         deleteError: null,
+        deleteSubjectError: null,
         createError: null,
         updateError: null,
         ids: [ ...state.ids, ...newStudyIds ],
@@ -70,6 +73,7 @@ export function reducer(state = inititalState, action: study.Actions): State {
 
       return {
         deleteError: null,
+        deleteSubjectError: state.deleteSubjectError,
         createError: state.createError,
         updateError: state.updateError,
         ids: notDeletedStudyIds,
@@ -101,10 +105,39 @@ export function reducer(state = inititalState, action: study.Actions): State {
     case study.ACTIVATE_SUBJECT:
       const subjectId = action.payload;
 
-      return Object.assign({}, state, {activeSubjectId: subjectId});
+      return Object.assign({}, state, {
+        activeSubjectId: subjectId,
+        deleteSubjectError: null
+      });
 
     case study.DEACTIVATE_SUBJECT:
       return Object.assign({}, state, {activeSubjectId: null});
+
+    case study.DELETE_SUBJECT_SUCCESS:
+      const deletedSubjectId = action.payload;
+
+      const updatedStudies = state.ids.map(studyId => state.entities[studyId])
+        .map(study => {
+          const subjects = study.subjects.filter(subjectId => subjectId !== deletedSubjectId);
+          return Object.assign({}, study, {subjects: subjects});
+        });
+
+      const updatedStudyEntities = updatedStudies.reduce((entities: { [id: string]: Study }, study:  Study) => {
+        return Object.assign(entities, {
+          [study.id]: study
+        });
+      }, {});
+
+      return Object.assign({}, state, {
+        deleteSubjectError: null,
+        entities: updatedStudyEntities,
+        activeSubjectId: null
+      });
+
+    case study.DELETE_SUBJECT_FAILURE:
+      const deleteSubjectError = action.payload;
+
+      return Object.assign({}, state, {deleteSubjectError: deleteSubjectError});
 
     default:
       return state;
@@ -121,6 +154,8 @@ export const getSelectedId = (state: State) => state.selectedStudyId;
 export const getCreateError = (state: State) => state.createError;
 
 export const getDeleteError = (state: State) => state.deleteError;
+
+export const getDeleteSubjectError = (state: State) => state.deleteSubjectError;
 
 export const getUpdateError = (state: State) => state.updateError;
 

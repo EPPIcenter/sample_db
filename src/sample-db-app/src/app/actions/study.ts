@@ -15,6 +15,10 @@ export const UPDATE = '[Study] Update';
 export const UPDATE_FAILURE = '[Study] Update Failure';
 export const ACTIVATE_SUBJECT = '[Study] Activate Subject';
 export const DEACTIVATE_SUBJECT = '[Study] Deactivate Subject';
+export const DELETE_SUBJECT = '[Study] Delete Study Subject';
+export const DELETE_SUBJECT_SUCCESS = '[Study] Delete Study Subject Success';
+export const DELETE_SUBJECT_FAILURE = '[Study] Delete Study Subject Failure';
+
 
 export class GetAllAction implements Action {
   readonly type = GET_ALL;
@@ -94,6 +98,24 @@ export class DeactivateSubjectAction implements Action {
   constructor() {}
 }
 
+export class DeleteSubjectAction implements Action {
+  readonly type = DELETE_SUBJECT;
+
+  constructor(public payload: string) {}
+}
+
+export class DeleteSubjectSuccessAction implements Action {
+  readonly type = DELETE_SUBJECT_SUCCESS;
+
+  constructor(public payload: string) {}
+}
+
+export class DeleteSubjectFailureAction implements Action {
+  readonly type = DELETE_SUBJECT_FAILURE;
+
+  constructor(public payload: string) {}
+}
+
 
 export type Actions
   = GetAllAction
@@ -108,5 +130,8 @@ export type Actions
   | UpdateAction
   | UpdateFailureAction
   | ActivateSubjectAction
-  | DeactivateSubjectAction;
+  | DeactivateSubjectAction
+  | DeleteSubjectAction
+  | DeleteSubjectSuccessAction
+  | DeleteSubjectFailureAction;
 
