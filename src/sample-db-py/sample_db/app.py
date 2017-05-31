@@ -437,6 +437,9 @@ class SampleDB(object):
         with self._session_scope() as session:
             with session.no_autoflush:
                 temp_matrix_tube_map = {}
+                matrix_plates = []
+                study_subjects = []
+                specimens = []
                 for matrix_tube_entry in matrix_tube_entries:
                     barcode = matrix_tube_entry['barcode']
                     plate_uid = matrix_tube_entry['plate_uid']
@@ -452,29 +455,25 @@ class SampleDB(object):
 
                     comments = matrix_tube_entry.get('comments')
                     matrix_tube = session.query(MatrixTube).filter(MatrixTube.barcode == barcode).one()  # type: MatrixTube
-                    destination_plate = session.query(MatrixPlate).filter(MatrixPlate.uid == plate_uid).one()  # type: MatrixPlate
+                    old_plate = matrix_tube.plate
 
+                    destination_plate = session.query(MatrixPlate).filter(MatrixPlate.uid == plate_uid).one()  # type: MatrixPlate
                     matrix_tube.plate = destination_plate
                     matrix_tube.well_position = well_position
                     if comments:
                         matrix_tube.comments = comments
                     matrix_tubes.append(matrix_tube)
+                    matrix_plates += [old_plate, destination_plate]
+                    study_subjects.append(matrix_tube.specimen.study_subject)
+                    specimens.append(matrix_tube.specimen)
                 session.flush()
                 # Do the proper remapping
                 for tube in matrix_tubes:
                     tube.well_position = temp_matrix_tube_map[tube.barcode]
-                matrix_plates = []
-                study_subjects = []
-                specimens = []
-                for tube in matrix_tubes:
-                    matrix_plates.append(tube.plate)
-                    study_subjects.append(tube.specimen.study_subject)
-                    specimens.append(tube.specimen)
                 matrix_plates = list(set(matrix_plates))
                 study_subjects = list(set(study_subjects))
                 specimens = list(set(specimens))
-            session.f.uidlush()
-
+            session.flush()
         return matrix_plates, study_subjects, specimens, matrix_tubes
 
     def delete_plate(self, plate_id):

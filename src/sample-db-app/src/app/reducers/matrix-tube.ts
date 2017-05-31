@@ -19,11 +19,11 @@ export function reducer(state = initialState, action: study.Actions | plate.Acti
   switch (action.type) {
     case study.LOAD_ONE:
     case plate.LOAD_ONE:
-      const matrixTubes = action.payload.matrix_tube;
+      const matrixTubes = action.payload.matrix_tube || [];
       const newMatrixTubes = matrixTubes ? matrixTubes.filter(matrixTube => !state.entities[matrixTube.id]) : [];
 
       const newMatrixTubeIds = newMatrixTubes.map(matrixTube => matrixTube.id);
-      const newMatrixTubeEntities =  newMatrixTubes.reduce((entities: { [id: string]: MatrixTube }, matrixTube: MatrixTube) => {
+      const updatedMatrixTubeEntities =  matrixTubes.reduce((entities: { [id: string]: MatrixTube }, matrixTube: MatrixTube) => {
         return Object.assign(entities, {
           [matrixTube.id]: matrixTube
         });
@@ -31,7 +31,7 @@ export function reducer(state = initialState, action: study.Actions | plate.Acti
 
       return {
         ids: [...state.ids, ...newMatrixTubeIds],
-        entities: Object.assign({}, state.entities, newMatrixTubeEntities)
+        entities: Object.assign({}, state.entities, updatedMatrixTubeEntities)
       };
 
     case bulk.DELETE_BARCODES_SUCCESS:

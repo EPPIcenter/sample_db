@@ -100,7 +100,7 @@ class BaseFileManager(object):
             for entry in r:
                 tube_entry = {'plate_uid': plate_uid,
                               'well_position': entry['well'],
-                              'comments': entry['comments'],
+                              'comments': entry.get('comments'),
                               'barcode': entry['barcode']
                               }
                 matrix_tube_entries.append(tube_entry)

@@ -79,6 +79,7 @@ export class MatrixPlateEffects {
     .switchMap(payload => {
       return this.matrixPlateService.updatePlates(payload)
         .concatMap((updatedMatrixPlateEntry: MatrixPlateEntry) => {
+          const actions: Action[] = [];
           let parsedMatrixPlate: MatrixPlate | MatrixPlate[];
           if (Array.isArray(updatedMatrixPlateEntry.matrix_plate)) {
             parsedMatrixPlate = updatedMatrixPlateEntry.matrix_plate.map(matrixPlate => {
@@ -98,7 +99,6 @@ export class MatrixPlateEffects {
           }
 
           updatedMatrixPlateEntry.matrix_plate = parsedMatrixPlate;
-          const actions: Action[] = [];
           actions.push(new matrixPlate.LoadOneAction(updatedMatrixPlateEntry));
           actions.push(go('plate'));
           return actions;
