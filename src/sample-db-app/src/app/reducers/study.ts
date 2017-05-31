@@ -1,7 +1,9 @@
 import { createSelector } from 'reselect';
 import { ActionReducer, Action } from '@ngrx/store';
 import { Study } from '../models/study';
+import { StudySubject } from '../models/study-subject';
 import * as study from '../actions/study';
+import * as plate from '../actions/plate';
 
 export interface State {
   deleteError: string | null;
@@ -25,7 +27,7 @@ export const inititalState: State = {
   activeSubjectId: null
 };
 
-export function reducer(state = inititalState, action: study.Actions): State {
+export function reducer(state = inititalState, action: study.Actions | plate.Actions): State {
   switch (action.type) {
     case study.LOAD_SUCCESS:
       const studies = action.payload;
@@ -138,6 +140,24 @@ export function reducer(state = inititalState, action: study.Actions): State {
       const deleteSubjectError = action.payload;
 
       return Object.assign({}, state, {deleteSubjectError: deleteSubjectError});
+
+    case plate.LOAD_ONE:
+      const newStudySubjects = action.payload.study_subject;
+      const groupedByStudy = newStudySubjects.reduce((byStudy: { [id: string]: string[] }, studySubject: StudySubject) => {
+        const oldIds = byStudy[studySubject.study] || [];
+        return Object.assign(byStudy, {
+          [studySubject.study]: [...oldIds, studySubject.id]
+        });
+      }, {});
+      const oldStudies = state.ids.map(id => state.entities[id]);
+      const updatedStudySubjectStudyEntities = oldStudies.reduce((entities: { [id: string]: Study }, study: Study) => {
+        const newStudySubjectIdsForStudy = groupedByStudy[study.id].filter(studySubjectId => study.subjects.indexOf(studySubjectId) === -1);
+        const updatedStudySubjectStudy = Object.assign({}, study, {subjects: [...study.subjects, ...newStudySubjectIdsForStudy]});
+        return Object.assign(entities, {
+          [study.id]: updatedStudySubjectStudy
+        });
+      }, {});
+      return Object.assign({}, state, {entities: updatedStudySubjectStudyEntities});
 
     default:
       return state;
