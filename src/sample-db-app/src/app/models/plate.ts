@@ -23,6 +23,7 @@ export interface MatrixTube extends StorageContainer {
 
 export interface MatrixPlate extends Base {
   uid: string;
+  hidden: boolean;
   tubes: string[];
   location: string;
 }

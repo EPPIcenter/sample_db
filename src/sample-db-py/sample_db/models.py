@@ -67,6 +67,7 @@ class Study(Base):
     short_code = Column(String, unique=True, index=True, nullable=False)  # Should we constrain length?
     is_longitudinal = Column(Boolean, nullable=False)
     lead_person = Column(String, nullable=False)
+    hidden = Column(Boolean, nullable=False, default=False)
     read_only_fields = Base.read_only_fields | {'subjects'}
 
     def __str__(self):
@@ -193,6 +194,7 @@ class StorageContainer(Base):
 class MatrixPlate(LocationAnnotation, Base):
     __tablename__ = 'matrix_plate'
     uid = Column(String, unique=True, index=True, nullable=False)
+    hidden = Column(Boolean, nullable=False, default=False)
 
     def __str__(self):
         return "<{} {}, Location: {}>".format(self.__class__.__name__, self.uid, self.location.description)

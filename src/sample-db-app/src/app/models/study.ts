@@ -16,4 +16,5 @@ export interface Study extends Base {
   is_longitudinal: boolean | null;
   lead_person: string | null;
   subjects: string[];
+  hidden: boolean;
 };
