@@ -13,6 +13,11 @@ export const UPLOAD_FAILURE = '[Plate] Upload Failure';
 export const UPDATE = '[Plate] Update';
 export const UPDATE_FAILURE = '[Plate] Update Failure';
 export const SELECT = '[Plate] Select';
+export const HIDE = '[Plate] Hide';
+export const HIDE_FAILURE = '[Plate] Hide Failure';
+export const UNHIDE = '[Plate] Unhide';
+export const UNHIDE_FAILURE = '[Plate] Unhide Failure';
+export const TOGGLE_HIDDEN = '[Plate] Toggle Hidden';
 
 export class GetAllAction implements Action {
   readonly type = GET_ALL;
@@ -84,6 +89,35 @@ export class SelectAction implements Action {
   constructor(public payload: string) { }
 }
 
+export class HideAction implements Action {
+  readonly type = HIDE;
+
+  constructor(public payload: number[]) { }
+}
+
+export class HideFailureAction implements Action {
+  readonly type = HIDE_FAILURE;
+
+  constructor(public payload: string) { }
+}
+
+export class UnhideAction implements Action {
+  readonly type = UNHIDE;
+
+  constructor(public payload: number[]) { }
+}
+
+export class UnhideFailureAction implements Action{
+  readonly type = UNHIDE_FAILURE;
+
+  constructor(public payload: string) { }
+}
+
+export class ToggleHiddenAction implements Action {
+  readonly type = TOGGLE_HIDDEN;
+  constructor() { }
+}
+
 export type Actions
   = GetAllAction
   | LoadOneAction
@@ -95,4 +129,9 @@ export type Actions
   | UploadFailureAction
   | UpdateAction
   | UpdateFailureAction
-  | SelectAction;
+  | SelectAction
+  | HideAction
+  | HideFailureAction
+  | UnhideAction
+  | UnhideFailureAction
+  | ToggleHiddenAction;

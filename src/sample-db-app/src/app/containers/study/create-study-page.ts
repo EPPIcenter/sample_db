@@ -36,7 +36,8 @@ export class CreateStudyPageComponent {
       short_code: null,
       is_longitudinal: false,
       lead_person: null,
-      subjects: []
+      subjects: [],
+      hidden: false
     };
   }
 

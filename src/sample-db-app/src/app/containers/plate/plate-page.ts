@@ -38,7 +38,14 @@ export class MatrixPlateListPageComponent {
       action: go(['/plate/create']),
       color: 'primary',
       tooltip: 'Add New Plate'
+    },
+    {
+      icon: 'visibility',
+      action: new matrixPlate.ToggleHiddenAction(),
+      color: 'primary',
+      tooltip: 'Toggle Hidden Plates'
     }
+
   ];
   toolbarColor = 'accent';
   toolbarTitle = 'Plates';
@@ -47,7 +54,7 @@ export class MatrixPlateListPageComponent {
     this.store = store;
     const sortProperty$ = of('location');
     this.locations$ = store.select(fromRoot.getLocationEntities);
-    this.plates$ = store.select(fromRoot.getAllMatrixPlates);
+    this.plates$ = store.select(fromRoot.getActiveMatrixPlates);
     this.plates$ = combineLatest(sortProperty$, this.plates$, (prop, items) => {
       return _.sortBy(items, prop);
     });
@@ -58,4 +65,6 @@ export class MatrixPlateListPageComponent {
   dispatchAction(action) {
     this.store.dispatch(action);
   }
+
+
 }

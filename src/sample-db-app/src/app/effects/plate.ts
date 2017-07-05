@@ -116,6 +116,46 @@ export class MatrixPlateEffects {
         });
     });
 
+  @Effect()
+  hide$: Observable<Action> = this.actions$
+    .ofType(matrixPlate.HIDE)
+    .map(toPayload)
+    .switchMap(payload => {
+      return this.matrixPlateService.hidePlates(payload)
+        .concatMap((matrixPlates: MatrixPlate[]) => {
+          return [ new matrixPlate.LoadSuccessAction(matrixPlates), go('plate') ];
+        })
+        .catch(err => {
+          if (err.status < 500 && err.status > 400) {
+            if (err.message) {
+              return of(new matrixPlate.HideFailureAction(err.message));
+            } else {
+              return of(new matrixPlate.HideFailureAction(JSON.parse(err._body).message));
+            }
+          }
+        });
+    });
+
+  @Effect()
+  unhide$: Observable<Action> = this.actions$
+    .ofType(matrixPlate.UNHIDE)
+    .map(toPayload)
+    .switchMap(payload => {
+      return this.matrixPlateService.unhidePlates(payload)
+        .concatMap((matrixPlates: MatrixPlate[]) => {
+          return [ new matrixPlate.LoadSuccessAction(matrixPlates), go('plate') ];
+        })
+        .catch(err => {
+          if (err.status < 500 && err.status > 400) {
+            if (err.message) {
+              return of(new matrixPlate.UnhideFailureAction(err.message));
+            } else {
+              return of(new matrixPlate.UnhideFailureAction(JSON.parse(err._body).message));
+            }
+          }
+        });
+    });
+
 
   constructor(private actions$: Actions, private matrixPlateService: MatrixPlateService) { }
 }

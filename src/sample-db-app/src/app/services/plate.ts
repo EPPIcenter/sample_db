@@ -108,6 +108,31 @@ export class MatrixPlateService {
       });
   }
 
+  hidePlates(plateIds: number[]): Observable<MatrixPlate[]> {
+    return this.http.post(`${this.API_PATH}/plate/hide`, {plate_ids: plateIds}, {headers: this.headers})
+      .map(res => res.json())
+      .map(res => {
+        if (Object.keys(res.error.matrix_plate).length === 0) {
+          return res.data.matrix_plate;
+        } else {
+          throw(new Error(JSON.stringify(res.error)));
+        }
+      });
+  };
+
+  unhidePlates(plateIds: number[]): Observable<MatrixPlate[]> {
+    return this.http.post(`${this.API_PATH}/plate/unhide`, {plate_ids: plateIds}, {headers: this.headers})
+      .map(res => res.json())
+      .map(res => {
+        if (Object.keys(res.error.matrix_plate).length === 0) {
+          return res.data.matrix_plate;
+        } else {
+          throw(new Error(JSON.stringify(res.error)));
+        }
+      });
+  }
+
+
   postFiles(files: File[], url: string, params: Object={}) {
     const promise = new Promise<any>((resolve, reject) => {
       const formData = new FormData();

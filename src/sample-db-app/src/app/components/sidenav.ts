@@ -4,7 +4,7 @@ import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
   selector: 'sdb-sidenav',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <md-sidenav [opened]="open" [disableClose]=true >
+    <md-sidenav [opened]="open" [disableClose]="disableClose" >
       <md-nav-list>
         <ng-content></ng-content>
       </md-nav-list>
@@ -18,4 +18,5 @@ import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 })
 export class SidenavComponent {
   @Input() open = false;
+  @Input() disableClose = true;
 }

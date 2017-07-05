@@ -18,7 +18,10 @@ import { SpecimenType } from '../../models/specimen-type';
           </md-card-subtitle>
         </md-card-title>
         <div class="control-buttons">
-          <button md-mini-fab class="delete-button" mdTooltip="Delete Plate" (click)="deleteButton.emit()">
+          <button md-mini-fab class="control-button" mdTooltip="Toggle Hidden" (click)="toggleHidden.emit()">
+            <md-icon>{{visibility}}</md-icon>
+          </button>
+          <button md-mini-fab class="control-button" mdTooltip="Delete Plate" (click)="deleteButton.emit()">
             <md-icon>close</md-icon>
           </button>
         </div>
@@ -80,7 +83,7 @@ import { SpecimenType } from '../../models/specimen-type';
     md-card-title {
       width: 100%
     }
-    .edit-button {
+    .control-button {
       margin-bottom: 5px;
     }
     .control-buttons {
@@ -97,6 +100,7 @@ import { SpecimenType } from '../../models/specimen-type';
 })
 export class MatrixPlateDetailComponent {
   @Output() deleteButton = new EventEmitter();
+  @Output() toggleHidden = new EventEmitter();
   @Input() plate: MatrixPlate;
   @Input() location: Location;
   @Input() matrixTubes: {[id: string]: MatrixTube};
@@ -113,6 +117,10 @@ export class MatrixPlateDetailComponent {
 
   get plateLocation() {
     return this.location ? this.location.description : undefined;
+  }
+
+  get visibility() {
+    return this.plate.hidden ? 'visibility' : 'visibility_off';
   }
 
   wellPosition(t: MatrixTube) {

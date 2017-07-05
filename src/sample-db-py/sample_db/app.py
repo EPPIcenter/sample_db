@@ -482,6 +482,24 @@ class SampleDB(object):
             session.delete(matrix_plate)
         return True
 
+    def hide_plates(self, plate_ids):
+        plates = []
+        with self._session_scope() as session:
+            for plate_id in plate_ids:
+                plate = session.query(MatrixPlate).get(plate_id)
+                plate.hidden = True
+                plates.append(plate)
+        return plates
+
+    def unhide_plates(self, plate_ids):
+        plates = []
+        with self._session_scope() as session:
+            for plate_id in plate_ids:
+                plate = session.query(MatrixPlate).get(plate_id)
+                plate.hidden = False
+                plates.append(plate)
+        return plates
+
     def find_specimens(self, specimen_entries, date_format="%d/%m/%Y"):
         results = []
         with self._session_scope() as session:

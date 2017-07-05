@@ -404,6 +404,46 @@ def upload_plate():
         raise InvalidUsage(e.args[0], status_code=403)
 
 
+@app.route('/plate/hide', methods=['POST'])
+def hide_plates():
+    to_hide = request.get_json().get('plate_ids')
+    if to_hide is not None:
+        try:
+            plates = db.hide_plates(to_hide)
+            plate_entry, plate_err = matrix_plate_schema.dump(plates, many=True)
+            d = {
+                'matrix_plate': plate_entry
+            }
+            err = {
+                'matrix_plate': plate_err
+            }
+            return jsonify(data=d, error=err)
+        except NoResultFound:
+            raise InvalidUsage("Plate no longer exists. Please reload application.", status_code=403)
+    else:
+        raise InvalidUsage("Invalid API Call", status_code=400)
+
+
+@app.route('/plate/unhide', methods=['POST'])
+def unhide_plates():
+    to_show = request.get_json().get('plate_ids')
+    if to_show is not None:
+        try:
+            plates = db.unhide_plates(to_show)
+            plate_entry, plate_err = matrix_plate_schema.dump(plates, many=True)
+            d = {
+                'matrix_plate': plate_entry
+            }
+            err = {
+                'matrix_plate': plate_err
+            }
+            return jsonify(data=d, error=err)
+        except NoResultFound:
+            raise InvalidUsage("Plate no longer exists. Please reload application.", status_code=403)
+    else:
+        raise InvalidUsage("Invalid API Call", status_code=400)
+
+
 @app.route('/plate/update', methods=['POST'])
 def update_plates():
     bf = BaseFileManager()

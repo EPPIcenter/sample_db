@@ -181,6 +181,7 @@ export const getSelectedMatrixPlateLocation = createSelector(getSelectedMatrixPl
   return plate ? locations[plate.location] : undefined;
 });
 export const getAllMatrixPlates = createSelector(getMatrixPlateState, fromMatrixPlate.getAll);
+export const getActiveMatrixPlates = createSelector(getMatrixPlateState, fromMatrixPlate.getActive);
 export const getUpdateMatrixPlateError = createSelector(getMatrixPlateState, fromMatrixPlate.getUpdateError);
 export const getUploadMatrixPlateError = createSelector(getMatrixPlateState, fromMatrixPlate.getUploadError);
 export const getDeleteMatrixPlateError = createSelector(getMatrixPlateState, fromMatrixPlate.getDeleteError);

@@ -20,6 +20,7 @@ import { SpecimenType } from '../../models/specimen-type';
   template: `
   <sdb-plate-detail
     (deleteButton)="deletePlate()"
+    (toggleHidden)="toggleHidden()"
     [plate]="plate$ | async"
     [location]="location$ | async"
     [matrixTubes]="matrixTubes$ | async"
@@ -64,6 +65,16 @@ export class SelectedMatrixPlatePageComponent {
         this.store.dispatch(new matrixPlate.DeleteAction(selectedPlate.id));
       } else {
         this.store.dispatch(new matrixPlate.DeleteFailureAction("Cannot delete plate with tubes"));
+      }
+    });
+  }
+
+  toggleHidden() {
+    this.plate$.take(1).subscribe(selectedPlate => {
+      if (selectedPlate.hidden) {
+        this.store.dispatch(new matrixPlate.UnhideAction([+selectedPlate.id]));
+      } else {
+        this.store.dispatch(new matrixPlate.HideAction([+selectedPlate.id]));
       }
     });
   }
