@@ -454,10 +454,16 @@ class SampleDB(object):
                     temp_matrix_tube_map[barcode] = matrix_tube_entry['well_position']
 
                     comments = matrix_tube_entry.get('comments')
-                    matrix_tube = session.query(MatrixTube).filter(MatrixTube.barcode == barcode).one()  # type: MatrixTube
+                    try:
+                        matrix_tube = session.query(MatrixTube).filter(MatrixTube.barcode == barcode).one()  # type: MatrixTube
+                    except NoResultFound:
+                        raise NoResultFound('Matrix Tube with barcode {} does not exist.'.format(barcode))
                     old_plate = matrix_tube.plate
 
-                    destination_plate = session.query(MatrixPlate).filter(MatrixPlate.uid == plate_uid).one()  # type: MatrixPlate
+                    try:
+                        destination_plate = session.query(MatrixPlate).filter(MatrixPlate.uid == plate_uid).one()  # type: MatrixPlate
+                    except NoResultFound:
+                        raise NoResultFound('Matrix plate with UID {} does not exist.'.format(plate_uid))
                     matrix_tube.plate = destination_plate
                     matrix_tube.well_position = well_position
                     if comments:

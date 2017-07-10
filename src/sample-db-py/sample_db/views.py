@@ -475,8 +475,11 @@ def update_plates():
                            " ['Well', 'Barcode', 'Comments']", status_code=403)
     except IntegrityError:
         raise InvalidUsage("Tube Position Conflict. Make sure all plates with moved tubes are being updated.", status_code=403)
-    except NoResultFound:
-        raise InvalidUsage("One or more plates do not exist", status_code=403)
+    except NoResultFound as e:
+        if e.args and e.args[0]:
+            raise InvalidUsage(e.args[0], status_code=403)
+        else:
+            raise InvalidUsage("One or more items do not exist", status_code=403)
     except ValueError as e:
         raise InvalidUsage(e.args[0], status_code=403)
 
