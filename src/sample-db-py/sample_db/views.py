@@ -577,3 +577,13 @@ def delete_barcodes():
     except ValueError as e:
         raise InvalidUsage(e.args[0], status_code=403)
 
+
+@app.route('/log-error', methods=['POST'])
+def log_error():
+    payload = request.get_json()
+    message = payload['message']
+    url = payload['url']
+    stack = payload['stack']
+    formatted_msg = "\nMessage: {}\nURL: {}\nStack: {}\n".format(message, url, stack)
+    app.logger.warning(formatted_msg)
+    return jsonify(success=True)

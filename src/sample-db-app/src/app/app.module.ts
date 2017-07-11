@@ -1,5 +1,5 @@
 import { BrowserModule } from '@angular/platform-browser';
-import { NgModule } from '@angular/core';
+import { NgModule, ApplicationRef, ErrorHandler } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpModule } from '@angular/http';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -57,6 +57,8 @@ import { SpecimenTypeService } from './services/specimen-type';
 import { MatrixPlateService } from './services/plate';
 import { SearchService } from './services/search';
 import { BulkService } from './services/bulk';
+import { LoggingService } from './services/logging';
+import { GlobalErrorHandler } from './services/error-handler';
 
 import { reducer } from './reducers';
 import { routes } from './routes';
@@ -115,7 +117,12 @@ import { routes } from './routes';
     SpecimenTypeService,
     MatrixPlateService,
     SearchService,
-    BulkService
+    BulkService,
+    LoggingService,
+    {
+      provide: ErrorHandler,
+      useClass: GlobalErrorHandler
+    }
   ],
   bootstrap: [AppComponent]
 })

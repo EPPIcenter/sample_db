@@ -74,7 +74,6 @@ export class AppComponent {
   }
 
   closeSidenav() {
-
     this.store.dispatch(new layout.CloseSidenavAction());
   }
 

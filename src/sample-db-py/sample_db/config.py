@@ -18,7 +18,7 @@ import os
 import logging
 
 basedir = os.path.abspath(os.path.dirname(__file__))
-prod_dir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', '..'))
+prod_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 
 class Config:
@@ -28,18 +28,19 @@ class Config:
     BACKUP_DATE_FORMAT = "%d-%m-%y"
 
     # Logging
-    LOGGING_LOCATION = "app.log"
+
     LOGGING_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
 
 class DevelopmentConfig(Config):
-    DEBUG = True
+    DEBUG = False
     SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL') or 'sqlite:///' + os.path.join(basedir,
                                                                                                 'dev_sample_db.sqlite')
     DB_PATH = os.path.join(basedir, 'dev_sample_db.sqlite')
     BACKUP_PATH = os.path.join(basedir, 'db_backups')
     ASSETS_PATH = os.path.join(basedir, 'static')
     SQLALCHEMY_ECHO = True
+    LOGGING_LOCATION = os.path.join(basedir, 'app.log')
     LOGGING_LEVEL = logging.DEBUG
 
 
@@ -49,6 +50,7 @@ class ProductionConfig(Config):
     DB_PATH = os.path.join(prod_dir, 'sample_db.sqlite')
     BACKUP_PATH = os.path.join(prod_dir, 'db_backups')
     ASSETS_PATH = os.path.join(prod_dir, 'static')
+    LOGGING_LOCATION = os.path.join(prod_dir, 'app.log')
     LOGGING_LEVEL = logging.ERROR
 
 
