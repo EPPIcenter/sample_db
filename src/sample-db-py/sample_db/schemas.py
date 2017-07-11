@@ -25,6 +25,7 @@ class StudySubjectSchema(BaseSchema):
     class Meta:
         model = StudySubject
     # specimens = fields.Nested(SpecimenSchema, many=True)
+    study = fields.String(attribute='study_id')
 
 
 class StudySchema(BaseSchema):

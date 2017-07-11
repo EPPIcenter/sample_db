@@ -145,19 +145,23 @@ export function reducer(state = inititalState, action: study.Actions | plate.Act
       const newStudySubjects = action.payload.study_subject;
       if (newStudySubjects && newStudySubjects.length > 0) {
         const groupedByStudy = newStudySubjects.reduce((byStudy: { [id: string]: string[] }, studySubject: StudySubject) => {
-        const oldIds = byStudy[studySubject.study] || [];
-        return Object.assign(byStudy, {
-          [studySubject.study]: [...oldIds, studySubject.id]
-        });
+          const oldIds = byStudy[studySubject.study] || [];
+          return Object.assign(byStudy, {
+            [studySubject.study]: [...oldIds, studySubject.id]
+          });
         }, {});
         const oldStudies = state.ids.map(id => state.entities[id]);
         const updatedStudySubjectStudyEntities = oldStudies.reduce((entities: { [id: string]: Study }, study: Study) => {
-          const newStudySubjectIdsForStudy = groupedByStudy[study.id]
+          let newStudySubjectIdsForStudy = [];
+          if (groupedByStudy.hasOwnProperty(study.id)) {
+            newStudySubjectIdsForStudy = groupedByStudy[study.id]
             .filter(studySubjectId => study.subjects.indexOf(studySubjectId) === -1);
+          };
           const updatedStudySubjectStudy = Object.assign({}, study, {subjects: [...study.subjects, ...newStudySubjectIdsForStudy]});
           return Object.assign(entities, {
             [study.id]: updatedStudySubjectStudy
           });
+
         }, {});
         return Object.assign({}, state, {entities: updatedStudySubjectStudyEntities});
       } else {
