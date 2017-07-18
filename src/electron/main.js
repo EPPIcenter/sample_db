@@ -1,6 +1,7 @@
 const electron = require('electron')
 const spawn = require('child_process').spawn;
 const ps = require('process');
+const http = require('http');
 // Module to control application life.
 const app = electron.app;
 const protocol = electron.protocol;
@@ -38,11 +39,11 @@ function createWindow () {
   })
 }
 
-
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', () => {
+
   env = Object.create(process.env);
   env.CONFIG = 'Production';
   sampledb = spawn(path.join(__dirname, 'db-server', 'run', 'run'), options={
@@ -58,7 +59,18 @@ app.on('ready', () => {
     if (err) console.error('Failed to register protocol');
   });
 
-  createWindow();
+  
+  let p = setInterval(() => {
+      http.get('http://localhost:5000/status', (response) => {
+        response.on('data', (chunk) => {
+          clearInterval(p);
+          createWindow();
+        });
+      }).on('error', () => {
+        console.log("Failed");
+      });
+    }, 1000)
+  // createWindow();
 });
 
 // Quit when all windows are closed.

@@ -84,11 +84,16 @@ def handle_invalid_usage(error):
 
 
 @app.route('/assets/<path:path>')
-def catch_all(path):
+def get_asset(path):
     try:
         return send_from_directory(app.config['ASSETS_PATH'], path)
     except NotFound:
         return abort(404)
+
+
+@app.route('/status')
+def check_status():
+    return jsonify(status="online")
 
 
 @app.route('/study', methods=['GET'])
