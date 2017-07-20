@@ -626,14 +626,14 @@ class SampleDB(object):
                 barcode = entry.pop('barcode')
                 try:
                     matrix_tube = self._get_matrix_tube(session, barcode)
-                    entry['Study Subject'] = matrix_tube.specimen.study_subject.uid
+                    entry['Study Subject UID'] = matrix_tube.specimen.study_subject.uid
                     entry['Specimen Type'] = matrix_tube.specimen.specimen_type.label
                     entry['Study Short Code'] = matrix_tube.specimen.study_subject.study.short_code
                     entry['Comments'] = matrix_tube.comments
                     if matrix_tube.specimen.collection_date:
                         entry['Date'] = datetime.date.strftime(matrix_tube.specimen.collection_date, date_format)
                 except NoResultFound:
-                    entry['Study Subject'] = "Barcode ({}) Not Found".format(barcode)
+                    entry['Study Subject UID'] = "Barcode ({}) Not Found".format(barcode)
                     entry['Specimen Type'] = ""
                     entry['Study Short Code'] = ""
                     entry['Comments'] = ""
