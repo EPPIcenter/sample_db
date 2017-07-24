@@ -51,3 +51,6 @@ Arbitrary CSV files containing a field labeled **Barcode** may be used. SampleDB
 
 ## Search By Specimen
 A CSV file [(template here)](https://github.com/Greenhouse-Lab/sample_db/blob/master/templates/specimen_search_template.csv) containing unique specimen identifying information may be used to find the physical location of samples. SampleDB will export a csv file indicating the Plate UID and Well Location of each sample, and indicate if a sample could not be found.
+
+# Delete
+In the case that tubes or specimens must be deleted from the database, navigate to the **Delete** tab, and upload the indicated files ([Delete by Specimen Template](https://github.com/Greenhouse-Lab/sample_db/blob/master/templates/delete_specimen_template.csv) or [Delete by Barcode Template](https://github.com/Greenhouse-Lab/sample_db/blob/master/templates/delete_barcode_template.csv))
