@@ -52,5 +52,8 @@ Arbitrary CSV files containing a field labeled **Barcode** may be used. SampleDB
 ## Search By Specimen
 A CSV file [(template here)](https://github.com/Greenhouse-Lab/sample_db/blob/master/templates/specimen_search_template.csv) containing unique specimen identifying information may be used to find the physical location of samples. SampleDB will export a csv file indicating the Plate UID and Well Location of each sample, and indicate if a sample could not be found.
 
-# Delete
-In the case that tubes or specimens must be deleted from the database, navigate to the **Delete** tab, and upload the indicated files ([Delete by Specimen Template](https://github.com/Greenhouse-Lab/sample_db/blob/master/templates/delete_specimen_template.csv) or [Delete by Barcode Template](https://github.com/Greenhouse-Lab/sample_db/blob/master/templates/delete_barcode_template.csv))
+# Delete Entries
+In the case that tubes or specimens must be deleted from the database, navigate to the **Delete** tab, and upload the indicated files ([Delete by Specimen Template](https://github.com/Greenhouse-Lab/sample_db/blob/master/templates/delete_specimen_template.csv) or [Delete by Barcode Template](https://github.com/Greenhouse-Lab/sample_db/blob/master/templates/delete_barcode_template.csv)). Succesful deletion will result in a message with the number of specimens and tubes that have been deleted from the database.
+
+# Backup and Restore Databases
+SampleDB will automatically backup the database the first time that it is run every day. Backups are stored in `/path/to/sampledb/Resources/app/db-server/db_backups` and may be restored by overwriting `/path/to/sampledb/Resources/app/db-server/sample_db.sqlite`. **Be sure to close SampleDB after use, otherwise the database will not be backed up daily**
