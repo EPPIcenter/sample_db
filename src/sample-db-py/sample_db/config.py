@@ -18,7 +18,7 @@ import os
 import logging
 
 basedir = os.path.abspath(os.path.dirname(__file__))
-prod_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+prod_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 
 
 class Config:

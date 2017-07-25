@@ -1,0 +1,23 @@
+{
+  "name": "sample-db",
+  "version": "1.0.0",
+  "devDependencies": {
+    "electron": "^1.6.11",
+    "electron-builder": "^19.16.2"
+  },
+  "build": {
+    "appId": "com.greenhouselab.${name}",
+    "productName": "SampleDB",
+    "directories": {
+      "app": "app",
+      "output": "dist"
+    },
+    "compression": "maximum",
+    "mac": {
+      "target": "dmg"
+    },
+    "win": {
+      "target": "portable"
+    }
+  }
+}

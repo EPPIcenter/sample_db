@@ -28,7 +28,7 @@ function createWindow () {
   }));
 
   // Open the DevTools.
-  // mainWindow.webContents.openDevTools()
+  mainWindow.webContents.openDevTools()
 
   // Emitted when the window is closed.
   mainWindow.on('closed', function () {
@@ -46,9 +46,11 @@ app.on('ready', () => {
 
   env = Object.create(process.env);
   env.CONFIG = 'Production';
-  sampledb = spawn(path.join(__dirname, 'db-server', 'run', 'run'), options={
+  console.log(path.join(__dirname, 'db-server', ps.platform, 'run', 'run'))
+  sampledb = spawn(path.join(__dirname, 'db-server', ps.platform, 'run', 'run'), options={
       env: env
   });
+  console.log(sampledb.pid);
   pids.push(sampledb.pid);
 
   // Make electron sever local files called from the app.

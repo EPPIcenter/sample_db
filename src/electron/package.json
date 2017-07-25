@@ -3,9 +3,6 @@
   "version": "1.0.0",
   "description": "Sample Database management application.",
   "main": "main.js",
-  "scripts": {
-    "start": "electron ."
-  },
   "repository": "https://github.com/greenhouse-lab/sample_db",
   "keywords": [
     "Matrix",
@@ -13,9 +10,9 @@
     "sample",
     "management"
   ],
-  "author": "Maxwell Murphy ",
-  "license": "AGPL",
-  "devDependencies": {
-    "electron": "~1.6.2"
-  }
+  "author": {
+    "name": "Maxwell Murphy",
+    "email": "murphy2122@berkeley.edu"
+  },
+  "license": "AGPL"
 }
