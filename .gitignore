@@ -17,3 +17,5 @@ win-pybuild
 node_modules
 app
 run.spec
+
+yarn-error\.log

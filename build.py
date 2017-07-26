@@ -76,7 +76,7 @@ def build_electron():
         shutil.copy(os.path.join(ELECTRON_SRC_PATH, f), BUILD_PATH)
 
 def make_dist():
-    os.system('yarn electron-builder -wm')
+    os.system('yarn dist')
 
 if __name__=='__main__':
     clean_build()
@@ -86,4 +86,4 @@ if __name__=='__main__':
     build_static_files()
     build_client()
     build_electron()
-    # make_dist()
+    make_dist()
