@@ -1,0 +1,29 @@
+{
+  "name": "sample-db",
+  "version": "1.0.1",
+  "license": "MIT",
+  "scripts": {
+    "dist-mac": "electron-builder -m",
+    "dist-win": "electron-builder -w",
+    "dist": "electron-builder -m -w"
+  },
+  "devDependencies": {
+    "electron": "^1.6.11",
+    "electron-builder": "^19.16.2"
+  },
+  "build": {
+    "productName": "SampleDB",
+    "directories": {
+      "app": "app",
+      "output": "dist"
+    },
+    "asarUnpack": ["**/*"],
+    "compression": "maximum",
+    "mac": {
+      "target": "dmg"
+    }, 
+    "win": {
+      "target": "nsis"
+    }
+  }
+}

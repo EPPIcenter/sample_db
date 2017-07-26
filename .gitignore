@@ -11,3 +11,11 @@
 .DS_STORE
 \.vscode/
 *.sqlite
+dist
+darwin-pybuild
+win-pybuild
+node_modules
+app
+run.spec
+
+yarn-error\.log

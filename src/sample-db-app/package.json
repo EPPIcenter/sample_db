@@ -1,20 +1,21 @@
 {
-  "name": "sample-db-app",
-  "version": "0.0.0",
+  "name": "sample-db",
+  "version": "1.0.0",
   "license": "MIT",
   "scripts": {
-    "ng": "ng",
-    "start": "webpack-dev-server --port=4200",
     "build": "webpack",
+    "start": "webpack-dev-server --port=4200",
     "test": "karma start ./karma.conf.js",
-    "lint": "ng lint",
-    "e2e": "protractor ./protractor.conf.js",
     "prepree2e": "npm start",
-    "pree2e": "webdriver-manager update --standalone false --gecko false --quiet"
+    "pree2e": "webdriver-manager update --standalone false --gecko false --quiet",
+    "e2e": "protractor ./protractor.conf.js",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
   },
   "private": true,
   "dependencies": {
     "@angular/animations": "^4.0.2",
+    "@angular/cdk": "^2.0.0-beta.8",
     "@angular/common": "^4.0.0",
     "@angular/compiler": "^4.0.0",
     "@angular/core": "^4.0.0",
@@ -49,6 +50,7 @@
     "codelyzer": "~2.0.0",
     "css-loader": "^0.26.1",
     "cssnano": "^3.10.0",
+    "electron-builder": "^19.16.2",
     "exports-loader": "^0.6.3",
     "file-loader": "^0.10.0",
     "istanbul-instrumenter-loader": "^2.0.0",

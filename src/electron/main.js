@@ -19,8 +19,11 @@ const pids = [];
 
 function createWindow () {
   // Create the browser window.
-  mainWindow = new BrowserWindow({width: 800, height: 600, title: "SampleDB" })
 
+  if (!mainWindow) {
+    mainWindow = new BrowserWindow({width: 800, height: 600, title: "SampleDB" })
+  }
+  
   mainWindow.loadURL(url.format({
     pathname: 'index.html',
     protocol: 'file',
@@ -37,6 +40,7 @@ function createWindow () {
     // when you should delete the corresponding element.
     mainWindow = null
   })
+  createWindow = () => {};
 }
 
 // This method will be called when Electron has finished
@@ -45,10 +49,23 @@ function createWindow () {
 app.on('ready', () => {
 
   env = Object.create(process.env);
+  let serverPath;
   env.CONFIG = 'Production';
-  sampledb = spawn(path.join(__dirname, 'db-server', 'run', 'run'), options={
+  
+  if (ps.platform==='win32') {
+    serverPath = __dirname.split("\\");
+    serverPath = serverPath.slice(0, serverPath.length - 1);
+    serverPath = serverPath.join("\\");
+  } else {
+    serverPath = __dirname.split("/");
+    serverPath = serverPath.slice(0, serverPath.length - 1);
+    serverPath = serverPath.join("/");
+  }
+  
+  sampledb = spawn(path.join(serverPath, 'app.asar.unpacked', 'db-server', ps.platform, 'run', 'run'), options={
       env: env
   });
+  console.log(sampledb.pid);
   pids.push(sampledb.pid);
 
   // Make electron sever local files called from the app.

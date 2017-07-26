@@ -4,6 +4,8 @@ import shutil
 
 
 def backup_db(path, backup_dir, date_format="%d-%m-%y"):
+    if not os.path.exists(backup_dir):
+        os.mkdir(backup_dir)
     all_backups = os.listdir(backup_dir)
     today = datetime.date.today()
     daily_backup_exists = False

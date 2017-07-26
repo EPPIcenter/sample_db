@@ -46,7 +46,7 @@ module.exports = {
     ]
   },
   "output": {
-    "path": path.join(process.cwd(), "dist"),
+    "path": path.join(process.cwd(), "app"),
     "filename": "[name].bundle.js",
     "chunkFilename": "[id].chunk.js"
   },
@@ -196,7 +196,7 @@ module.exports = {
         "favicon.ico"
       ],
       "globOptions": {
-        "cwd": "/Users/maxwellmurphy/Workspace/sample-db-app/src",
+        "cwd": "/Users/maxwellmurphy/Workspace/SampleDB/src/sample-db-app/src",
         "dot": true,
         "ignore": "**/.gitkeep"
       }
