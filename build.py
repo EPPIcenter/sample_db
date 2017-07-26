@@ -3,10 +3,13 @@ import sys
 import shutil
 
 
-VENV_PATH = os.path.join(os.path.expanduser("~"), ".virtualenvs", "sample_db")
+VENV_PATH = os.path.join(os.environ.get("WORKON_HOME"), "sample_db")
 WINE_PYINSTALLER_PATH = os.path.join(os.path.expanduser("~"), ".wine", "drive_c", "Python27", "Scripts", "pyinstaller.exe")
 WINE_PIP_PATH = os.path.join(os.path.expanduser("~"), ".wine", "drive_c", "Python27", "Scripts", "pip.exe")
-activate_script = os.path.join(VENV_PATH, "bin", "activate_this.py")
+if sys.platform == 'win32':
+    activate_script = os.path.join(VENV_PATH, "Scripts", "activate_this.py")
+else:
+    activate_script = os.path.join(VENV_PATH, "bin", "activate_this.py")
 execfile(activate_script, dict(__file__=activate_script))
 
 BUILD_PATH = './app'
