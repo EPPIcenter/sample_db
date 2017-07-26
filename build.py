@@ -76,7 +76,10 @@ def build_electron():
         shutil.copy(os.path.join(ELECTRON_SRC_PATH, f), BUILD_PATH)
 
 def make_dist():
-    os.system('yarn dist')
+    if sys,platform != 'win32':
+        os.system('yarn dist')
+    else:
+        os.system('yarn dist-win')
 
 if __name__=='__main__':
     clean_build()
