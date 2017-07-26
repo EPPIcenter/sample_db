@@ -50,7 +50,7 @@ def build_win_server():
     else:
         os.system("pip install -q -r {}".format(os.path.join(SERVER_SRC_PATH, 'requirements.txt')))
         os.system('pyinstaller -y --clean --distpath {} --workpath darwin-pybuild --log-level ERROR --hiddenimport email.mime.message {}'.format(
-            os.path.join(SERVER_BUILD_PATH, 'darwin'),
+            os.path.join(SERVER_BUILD_PATH, 'win32'),
             os.path.join(SERVER_SRC_PATH, 'run.py')
             )
         )
@@ -70,7 +70,7 @@ def build_darwin_server():
 def build_client():
     if os.path.exists(CLIENT_BUILD_PATH):
         shutil.rmtree(CLIENT_BUILD_PATH)
-    os.system("cd {} && webpack".format(CLIENT_SRC_PATH))
+    os.system("cd {} && yarn && webpack".format(CLIENT_SRC_PATH))
     shutil.move(os.path.join(CLIENT_SRC_PATH, "app"), CLIENT_BUILD_PATH)
     
 
