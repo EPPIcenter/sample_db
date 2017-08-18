@@ -40,7 +40,8 @@ function createWindow () {
     // when you should delete the corresponding element.
     mainWindow = null
   })
-  createWindow = () => {};
+
+  // createWindow = () => {};
 }
 
 // This method will be called when Electron has finished
@@ -70,15 +71,15 @@ app.on('ready', () => {
 
   // Make electron sever local files called from the app.
   protocol.interceptFileProtocol('file', (request, callback) => {
-    const url = request.url.substr(7);
-    callback({ path: path.normalize(`${__dirname}/db-app/${url}`)})
+    const item_url = request.url.substr(7);
+    callback({ path: path.normalize(`${__dirname}/db-app/${item_url}`)})
   }, (err) => {
     if (err) console.error('Failed to register protocol');
   });
 
   
   let p = setInterval(() => {
-      http.get('http://localhost:5000/status', (response) => {
+      http.get('http://localhost:17327/status', (response) => {
         response.on('data', (chunk) => {
           clearInterval(p);
           createWindow();

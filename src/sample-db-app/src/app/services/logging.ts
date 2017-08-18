@@ -9,7 +9,7 @@ interface LogMessage {
 }
 @Injectable()
 export class LoggingService {
-  private API_PATH = 'http://localhost:5000';
+  private API_PATH = 'http://localhost:17327';
   private headers = new Headers({'Content-Type': 'application/json'});
 
   constructor(private http: Http) {}

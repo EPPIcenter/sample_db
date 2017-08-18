@@ -5,7 +5,7 @@ import { fromPromise } from 'rxjs/observable/fromPromise';
 
 @Injectable()
 export class SearchService {
-  private API_PATH = 'http://localhost:5000';
+  private API_PATH = 'http://localhost:17327';
   private postFileHeaders = new Headers({'Content-Type': undefined});
 
   constructor(private http: Http) {}

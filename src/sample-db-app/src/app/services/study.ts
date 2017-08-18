@@ -7,7 +7,7 @@ import { StudySubject, Specimen } from '../models/study-subject';
 
 @Injectable()
 export class StudyService {
-  private API_PATH = 'http://localhost:5000';
+  private API_PATH = 'http://localhost:17327';
 
   private headers = new Headers({'Content-Type': 'application/json'});
 

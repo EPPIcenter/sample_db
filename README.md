@@ -56,4 +56,13 @@ A CSV file [(template here)](https://github.com/Greenhouse-Lab/sample_db/blob/ma
 In the case that tubes or specimens must be deleted from the database, navigate to the **Delete** tab, and upload the indicated files ([Delete by Specimen Template](https://github.com/Greenhouse-Lab/sample_db/blob/master/templates/delete_specimen_template.csv) or [Delete by Barcode Template](https://github.com/Greenhouse-Lab/sample_db/blob/master/templates/delete_barcode_template.csv)). Succesful deletion will result in a message with the number of specimens and tubes that have been deleted from the database.
 
 # Backup and Restore Databases
-SampleDB will automatically backup the database the first time that it is run every day. Backups are stored in `/path/to/sampledb/Resources/app/db-server/db_backups` and may be restored by overwriting `/path/to/sampledb/Resources/app/db-server/sample_db.sqlite`. **Be sure to close SampleDB after use, otherwise the database will not be backed up daily**
+SampleDB will automatically backup the database the first time that it is run every day. Backups are stored at the following locations
+
+|Platform |Path |
+|-|-|
+|Windows:|`C:\\User\yourUserName\Local\com.greenhouse.sampledb\{current_version}\db_backups`|
+|Mac:|`~/Library/Application Support/com.greenhouse.sampledb/{current_version}/db_backups` |
+
+Backups may be restored by overwriting the sample_db.sqlite file contained in the application data folder.
+
+ **Be sure to close SampleDB after use, otherwise the database will not be backed up daily**

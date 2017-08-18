@@ -7,7 +7,7 @@ import * as _ from 'lodash';
 
 @Injectable()
 export class MatrixPlateService {
-  private API_PATH = 'http://localhost:5000';
+  private API_PATH = 'http://localhost:17327';
   private headers = new Headers({'Content-Type': 'application/json'});
   private postFileHeaders = new Headers({'Content-Type': undefined});
 

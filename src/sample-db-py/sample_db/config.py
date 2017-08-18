@@ -19,13 +19,24 @@ import logging
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 prod_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+major_version = 'v1'
+version = 'v1.1.5'
+app_dir = 'com.greenhouse.sampledb'
+
+if os.sys.platform == 'darwin':
+    APPDATA = os.path.join(os.environ.get('HOME'), 'Library', 'Application Support', app_dir, major_version)
+elif os.sys.platform == 'win32':
+    APPDATA = os.path.join(os.environ.get('LOCALAPPDATA'), app_dir, major_version)
+
+if not os.path.exists(APPDATA):
+    os.makedirs(APPDATA)
 
 
 class Config:
     DEBUG = False
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
     SQLALCHEMY_RECORD_QUERIES = True
-    BACKUP_DATE_FORMAT = "%d-%m-%y"
+    BACKUP_DATE_FORMAT = "%d-%b-%y"
 
     # Logging
 
@@ -45,10 +56,11 @@ class DevelopmentConfig(Config):
 
 
 class ProductionConfig(Config):
-    SQLALCHEMY_DATABASE_URI = os.environ.get('PROD_DATABASE_URL') or 'sqlite:///' + os.path.join(prod_dir,
+    SQLALCHEMY_DATABASE_URI = os.environ.get('PROD_DATABASE_URL') or 'sqlite:///' + os.path.join(APPDATA,
                                                                                                  'sample_db.sqlite')
-    DB_PATH = os.path.join(prod_dir, 'sample_db.sqlite')
-    BACKUP_PATH = os.path.join(prod_dir, 'db_backups')
+    DB_PATH = os.path.join(APPDATA, 'sample_db.sqlite')
+    BACKUP_PATH = os.path.join(APPDATA, 'db_backups')
+
     ASSETS_PATH = os.path.join(prod_dir, 'static')
     LOGGING_LOCATION = os.path.join(prod_dir, 'app.log')
     LOGGING_LEVEL = logging.ERROR

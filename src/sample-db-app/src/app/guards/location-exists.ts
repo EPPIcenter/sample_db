@@ -47,7 +47,7 @@ export class LocationExistsGuard implements CanActivate {
           return of(inStore);
         }
         return this.hasLocationInApi(id);
-      })
+      });
   }
 
   canActivate(route: ActivatedRouteSnapshot): Observable<boolean> {

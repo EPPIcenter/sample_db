@@ -10,7 +10,7 @@ export interface DeleteQuery {
 
 @Injectable()
 export class BulkService {
-  private API_PATH = 'http://localhost:5000';
+  private API_PATH = 'http://localhost:17327';
   private postFileHeaders = new Headers({'Content-Type': undefined});
 
   constructor(private http: Http) {}

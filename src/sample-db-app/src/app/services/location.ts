@@ -5,7 +5,7 @@ import { Location } from '../models/location';
 
 @Injectable()
 export class LocationService {
-  private API_PATH = 'http://localhost:5000';
+  private API_PATH = 'http://localhost:17327';
 
   private headers = new Headers({'Content-Type': 'application/json'});
 
