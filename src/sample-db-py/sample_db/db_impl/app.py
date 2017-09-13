@@ -17,12 +17,19 @@
 import datetime
 from contextlib import contextmanager
 from sqlalchemy import create_engine
+from sqlalchemy.event import listen
+from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 
 from models import Base, Study, StudySubject, Specimen, MatrixPlate, MatrixTube, SpecimenType, Location
 
 Session = sessionmaker()
+
+
+def set_sqlite_pragma(dbapi_connection, connection_record):
+    dbapi_connection.execute("PRAGMA foreign_keys=ON")
+    dbapi_connection.execute("PRAGMA cache_size=-1000000")
 
 
 class SampleDB(object):
@@ -33,10 +40,15 @@ class SampleDB(object):
         :param conn_string:
         :param kwargs:
         """
+        if 'sqlite' in conn_string:
+            listen(Engine, "connect", set_sqlite_pragma)
+
         self._conn_string = conn_string
         self.engine = create_engine(conn_string, **kwargs)
         Base.metadata.create_all(self.engine)
         self._session = Session(bind=self.engine)
+
+
 
     @contextmanager
     def _session_scope(self):

@@ -1,7 +1,9 @@
+from ..db_impl.models import Study, StudySubject, SpecimenType, Specimen, Location, StorageContainer, MatrixPlate, \
+    MatrixTube
 from marshmallow import fields
 from marshmallow_sqlalchemy import ModelSchema
-from models import Study, StudySubject, SpecimenType, Specimen, Location, StorageContainer, MatrixPlate, MatrixTube
-from sample_db import db
+
+from . import db
 
 
 class BaseSchema(ModelSchema):

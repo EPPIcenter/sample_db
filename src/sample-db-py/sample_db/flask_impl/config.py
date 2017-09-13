@@ -17,10 +17,10 @@
 import os
 import logging
 
-basedir = os.path.abspath(os.path.dirname(__file__))
-prod_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+basedir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+prod_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', '..'))
 major_version = 'v1'
-version = 'v1.1.5'
+version = 'v1.1.6'
 app_dir = 'com.greenhouse.sampledb'
 
 if os.sys.platform == 'darwin':

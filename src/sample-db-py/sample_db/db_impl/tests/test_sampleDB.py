@@ -22,8 +22,8 @@ from datetime import date, timedelta
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 
-from sample_db.models import *
-from sample_db.app import SampleDB
+from ..models import *
+from ..app import SampleDB
 
 
 class TestSampleDB(unittest.TestCase):

@@ -17,11 +17,11 @@
 from datetime import datetime
 
 from sqlalchemy import Column, DateTime, Date, String, Integer, ForeignKey, Boolean, event
-from sqlalchemy.engine import Engine
+
 from sqlalchemy.schema import UniqueConstraint
 from sqlalchemy.orm import relationship, validates
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
-from sample_db import conf
+# from sample_db import conf
 import logging
 
 
@@ -231,10 +231,3 @@ class MatrixTube(StorageContainer):
         if well_position not in self.well_list:
             raise ValueError("{} is not a valid well position.".format(well_position))
         return well_position
-
-
-@event.listens_for(Engine, "connect")
-def set_sqlite_pragma(dbapi_connection, connection_record):
-    if 'sqlite' in conf.SQLALCHEMY_DATABASE_URI:
-        dbapi_connection.execute("PRAGMA foreign_keys=ON")
-        dbapi_connection.execute("PRAGMA cache_size=-1000000")

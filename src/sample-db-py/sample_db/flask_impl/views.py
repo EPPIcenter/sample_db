@@ -1,8 +1,8 @@
-from sample_db import app, db
+from . import app, db
 from flask import request, jsonify, send_from_directory, abort, send_file
 from werkzeug.exceptions import NotFound
 
-from sample_db.file_manager import BaseFileManager, DateParseError
+from file_manager import BaseFileManager, DateParseError
 from schemas import StudySchema, StudySubjectSchema, LocationSchema, SpecimenTypeSchema, \
     MatrixPlateSchema, SpecimenSchema, MatrixTubeSchema
 from sqlalchemy.orm.exc import NoResultFound, UnmappedInstanceError

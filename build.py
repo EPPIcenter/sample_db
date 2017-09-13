@@ -18,8 +18,8 @@ SERVER_SRC_STATIC_PATH = os.path.join(SERVER_SRC_PATH, 'sample_db', 'static')
 CLIENT_SRC_PATH = './src/sample-db-app/'
 ELECTRON_SRC_PATH = './src/electron/'
 
-SERVER_BUILD_PATH = os.path.join(BUILD_PATH, 'db-server')
-CLIENT_BUILD_PATH = os.path.join(BUILD_PATH, 'db-app')
+SERVER_BUILD_PATH = os.path.abspath(os.path.join(BUILD_PATH, 'db-server'))
+CLIENT_BUILD_PATH = os.path.abspath(os.path.join(BUILD_PATH, 'db-app'))
 
 if not os.path.exists(BUILD_PATH):
     os.mkdir(BUILD_PATH)
@@ -27,11 +27,12 @@ if not os.path.exists(BUILD_PATH):
 def clean_build():
     if os.path.exists(BUILD_PATH):
         shutil.rmtree(BUILD_PATH)
+
     os.mkdir(BUILD_PATH)
 
 def build_static_files():
-    if not os.path.exists(os.path.join(SERVER_BUILD_PATH, 'static')):
-        os.mkdir(os.path.join(SERVER_BUILD_PATH, 'static'))
+    if not os.path.exists(os.path.abspath(os.path.join(SERVER_BUILD_PATH, 'static'))):
+        os.makedirs(os.path.abspath(os.path.join(SERVER_BUILD_PATH, 'static')))
     for f in os.listdir(SERVER_SRC_STATIC_PATH):
         shutil.copy(os.path.join(SERVER_SRC_STATIC_PATH, f), os.path.join(SERVER_BUILD_PATH, 'static'))
 
@@ -41,7 +42,7 @@ def build_win_server():
         shutil.rmtree(os.path.join(SERVER_BUILD_PATH, 'win32'))
     if sys.platform != 'win32':
         os.system("wine {} install -q -r {}".format(WINE_PIP_PATH, os.path.join(SERVER_SRC_PATH, 'requirements.txt')))
-        os.system('wine {} -y --clean --distpath {} --workpath win-pybuild --log-level ERROR --hiddenimport email.mime.message {}'.format(
+        os.system('wine {} -y --clean --workpath win-pybuild  --paths=./src  --distpath {} --log-level ERROR --hiddenimport email.mime.message {}'.format(
             WINE_PYINSTALLER_PATH,
             os.path.join(SERVER_BUILD_PATH, 'win32'),
             os.path.join(SERVER_SRC_PATH, 'run.py'),
@@ -49,7 +50,7 @@ def build_win_server():
         )
     else:
         os.system("pip install -q -r {}".format(os.path.join(SERVER_SRC_PATH, 'requirements.txt')))
-        os.system('pyinstaller -y --clean --distpath {} --workpath darwin-pybuild --log-level ERROR --hiddenimport email.mime.message {}'.format(
+        os.system('pyinstaller -y --clean --distpath {} --paths=./src --workpath darwin-pybuild  --log-level ERROR --hiddenimport email.mime.message {}'.format(
             os.path.join(SERVER_BUILD_PATH, 'win32'),
             os.path.join(SERVER_SRC_PATH, 'run.py')
             )
