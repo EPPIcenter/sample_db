@@ -102,6 +102,11 @@ class SampleDB(object):
         study = session.query(Study).filter(Study.short_code == short_code).one()
         return study
 
+    def get_study_by_short_code(self, short_code):
+        with self._session_scope() as session:
+            study = self._get_study_by_short_code(session, short_code)
+        return study
+
     def edit_study(self, study):
         # type: (Study) -> tuple[Study, list[StudySubject], list[Specimen], list[MatrixTube]]
         with self._session_scope() as session:
