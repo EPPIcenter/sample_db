@@ -1,8 +1,8 @@
 import os
 
-from config import config
+from .config import config
 from flask import Flask
-from utils import backup_db
+from .utils import backup_db
 
 # import logging
 # conf = config['Production']

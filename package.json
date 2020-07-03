@@ -5,7 +5,7 @@
   "scripts": {
     "dist-mac": "electron-builder -m",
     "dist-win": "electron-builder -w",
-    "dist": "electron-builder -m -w"
+    "dist": "electron-builder -m"
   },
   "devDependencies": {
     "electron": "^1.6.11",

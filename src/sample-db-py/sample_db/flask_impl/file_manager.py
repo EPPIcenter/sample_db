@@ -42,7 +42,7 @@ class CaseInsensitiveDictReader(csv.DictReader, object):
 
 class BaseFileManager(object):
     def __init__(self, date_format=None):
-        self.date_format = date_format or "%d/%m/%Y"
+        self.date_format = date_format or "%d-%b-%Y"
 
     def parse_date(self, date_string):
         return datetime.datetime.strptime(date_string, self.date_format)
@@ -82,7 +82,7 @@ class BaseFileManager(object):
                     try:
                         specimen_entry['collection_date'] = self.parse_date(entry['date'])
                     except ValueError:
-                        raise DateParseError(message="Date must be in format 'DD/MM/YYYY'")
+                        raise DateParseError(message="Date must be in format 'MMM-DD-YYYY'")
                 else:
                     specimen_entry['collection_date'] = None
                 specimen_entry['comments'] = entry.get('comments')

@@ -3,7 +3,7 @@ import sys
 import shutil
 
 
-VENV_PATH = os.path.join(os.environ.get("WORKON_HOME"), "sample_db")
+VENV_PATH = os.path.join(os.environ.get("WORKON_HOME"), "sampledb")
 WINE_PYINSTALLER_PATH = os.path.join(os.path.expanduser("~"), ".wine", "drive_c", "Python27", "Scripts", "pyinstaller.exe")
 WINE_PIP_PATH = os.path.join(os.path.expanduser("~"), ".wine", "drive_c", "Python27", "Scripts", "pip.exe")
 if sys.platform == 'win32':
@@ -59,7 +59,8 @@ def build_win_server():
 def build_darwin_server():
     if sys.platform == 'darwin':
         print("Building Mac Server")
-        os.system("pip install -q -r {}".format(os.path.join(SERVER_SRC_PATH, 'requirements.txt')))
+        # os.system("pip install -q -r {}".format(os.path.join(SERVER_SRC_PATH, 'requirements.txt')))
+        # os.system("which pyinstaller")
         os.system('pyinstaller -y --clean --distpath {} --workpath darwin-pybuild --log-level ERROR --hiddenimport email.mime.message {}'.format(
             os.path.join(SERVER_BUILD_PATH, 'darwin'),
             os.path.join(SERVER_SRC_PATH, 'run.py')
@@ -71,7 +72,7 @@ def build_darwin_server():
 def build_client():
     if os.path.exists(CLIENT_BUILD_PATH):
         shutil.rmtree(CLIENT_BUILD_PATH)
-    os.system("cd {} && yarn && webpack".format(CLIENT_SRC_PATH))
+    os.system("cd {} && yarn && ./node_modules/.bin/webpack".format(CLIENT_SRC_PATH))
     shutil.move(os.path.join(CLIENT_SRC_PATH, "app"), CLIENT_BUILD_PATH)
     
 
@@ -87,7 +88,7 @@ def make_dist():
 
 if __name__=='__main__':
     clean_build()
-    build_win_server()
+    # build_win_server()
     if sys.platform == 'darwin':
         build_darwin_server()
     build_static_files()
