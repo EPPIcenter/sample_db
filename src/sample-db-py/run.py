@@ -1,5 +1,4 @@
-#!/usr/local/bin/python
-from gevent.wsgi import WSGIServer
+from gevent.pywsgi import WSGIServer
 import flask as _
 from sample_db.flask_impl import app
 

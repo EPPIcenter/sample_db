@@ -22,8 +22,8 @@ from datetime import date, timedelta
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 
-from ..models import *
-from ..app import SampleDB
+from sample_db.db_impl.models import *
+from sample_db.db_impl.app import SampleDB
 
 
 class TestSampleDB(unittest.TestCase):
@@ -177,7 +177,7 @@ class TestSampleDB(unittest.TestCase):
              'well_position': 'A02'},
         ]
 
-        matrix_plate, study_subjects, specimens = self.db.add_matrix_plate_with_specimens('1', location.id, specimen_entries, True, True)
+        matrix_plate, study_subjects, specimens, matrix_tubes = self.db.add_matrix_plate_with_specimens('1', location.id, specimen_entries, True, True)
 
         self.assertEqual(len(matrix_plate.tubes), 2)
         self.assertIsInstance(matrix_plate.tubes[0], MatrixTube)
@@ -242,8 +242,8 @@ class TestSampleDB(unittest.TestCase):
              'well_position': 'A02'},
         ]
 
-        matrix_plate1, _, __ = self.db.add_matrix_plate_with_specimens('1', location.id, specimen_entries1, True)
-        matrix_plate2, _, __ = self.db.add_matrix_plate_with_specimens('2', location.id, specimen_entries2, True)
+        matrix_plate1, study_subjects, specimens, matrix_tubes = self.db.add_matrix_plate_with_specimens('1', location.id, specimen_entries1, True)
+        matrix_plate2, study_subjects, specimens, matrix_tubes = self.db.add_matrix_plate_with_specimens('2', location.id, specimen_entries2, True)
 
         update_list = [
             {'barcode': '1',
@@ -260,12 +260,11 @@ class TestSampleDB(unittest.TestCase):
              'well_position': 'B02'}
         ]
 
-        moved_matrix_plates, _, __ = self.db.update_matrix_tube_locations(update_list)
+        moved_matrix_plates, study_subjects, specimens, matrix_tubes = self.db.update_matrix_tube_locations(update_list)
 
         self.assertIsInstance(moved_matrix_plates[0].tubes[0], MatrixTube)
         self.assertIsInstance(moved_matrix_plates[0].tubes[0].plate, MatrixPlate)
         for tube in matrix_plate1.tubes:
-            print tube
             self.assertEqual(tube.plate.uid, '1')
         for tube in matrix_plate2.tubes:
             self.assertEqual(tube.plate.uid, '2')
@@ -285,7 +284,7 @@ class TestSampleDB(unittest.TestCase):
              'well_position': 'A02'}
         ]
 
-        matrix_plates, _, __ = self.db.update_matrix_tube_locations(update_list)
+        matrix_plates, study_subjects, specimens, matrix_tubes = self.db.update_matrix_tube_locations(update_list)
         for tube in matrix_plates[0].tubes:
             if tube.barcode == '1':
                 self.assertEqual(tube.well_position, 'B02')
@@ -325,7 +324,7 @@ class TestSampleDB(unittest.TestCase):
              'well_position': 'A02'},
         ]
 
-        matrix_tubes = self.db.add_matrix_plate_with_specimens('1', location.id, specimen_entries, True)
+        matrix_plate, study_subjects, specimens, matrix_tubes = self.db.add_matrix_plate_with_specimens('1', location.id, specimen_entries, True)
 
         matrix_tube = self.db.get_matrix_tube('1')
         self.assertIsInstance(matrix_tube, MatrixTube)
@@ -356,7 +355,7 @@ class TestSampleDB(unittest.TestCase):
              'comments': 'Tube 2',
              'well_position': 'A02'},
         ]
-        matrix_plate, study_subjects, specimens = self.db.add_matrix_plate_with_specimens('1', location.id,
+        matrix_plate, study_subjects, specimens, matrix_tubes = self.db.add_matrix_plate_with_specimens('1', location.id,
                                                                                           specimen_entries, True)
 
         matrix_tube_query = self.db.get_matrix_tubes(['1', '2'])
@@ -388,9 +387,8 @@ class TestSampleDB(unittest.TestCase):
              'well_position': 'A02'},
         ]
 
-        matrix_plate, study_subjects, specimens = self.db.add_matrix_plate_with_specimens('1', location.id, specimen_entries, True)
-        self.db.set_matrix_tube_exhausted('1')
-        self.db.set_matrix_tube_exhausted('2')
+        matrix_plate, study_subjects, specimens, matrix_tubes = self.db.add_matrix_plate_with_specimens('1', location.id, specimen_entries, True)
+        self.db.set_matrix_tubes_exhausted(['1', '2'])
 
         for matrix_tube in matrix_plate.tubes:
             self.assertTrue(matrix_tube.exhausted)
@@ -419,12 +417,12 @@ class TestSampleDB(unittest.TestCase):
              'well_position': 'A02'},
         ]
 
-        matrix_plate, study_subjects, specimens = self.db.add_matrix_plate_with_specimens('1', location.id, specimen_entries, True)
+        matrix_plate, study_subjects, specimens, matrix_tubes = self.db.add_matrix_plate_with_specimens('1', location.id, specimen_entries, True)
 
         for matrix_tube in matrix_plate.tubes:
-            self.db.set_matrix_tube_exhausted(matrix_tube.barcode)
+            self.db.set_matrix_tubes_exhausted([matrix_tube.barcode])
             self.assertTrue(matrix_tube.exhausted)
-            self.db.unset_matrix_tube_exhausted(matrix_tube.barcode)
+            self.db.unset_matrix_tubes_exhausted([matrix_tube.barcode])
             self.assertFalse(matrix_tube.exhausted)
 
 

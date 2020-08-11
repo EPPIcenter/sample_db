@@ -1,8 +1,8 @@
 import os
 
-from .config import config
 from flask import Flask
-from .utils import backup_db
+from sample_db.flask_impl.config import config
+from sample_db.flask_impl.utils import backup_db
 
 # import logging
 # conf = config['Production']
@@ -11,7 +11,7 @@ from .utils import backup_db
 # Load Configuration
 conf = config[os.environ.get('CONFIG', 'Development')]
 
-from ..db_impl.app import SampleDB
+from sample_db.db_impl.app import SampleDB
 
 app = Flask(__name__)
 app.config.from_object(conf)
@@ -25,6 +25,7 @@ app.config.from_object(conf)
 backup_db(conf.DB_PATH, conf.BACKUP_PATH, conf.BACKUP_DATE_FORMAT)
 
 db = SampleDB(conf.SQLALCHEMY_DATABASE_URI)
-import views
 
-print "Loading Flask App"
+import sample_db.flask_impl.views
+
+print("Loading Flask App")

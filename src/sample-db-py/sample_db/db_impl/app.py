@@ -22,7 +22,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 
-from models import Base, Study, StudySubject, Specimen, MatrixPlate, MatrixTube, SpecimenType, Location
+from sample_db.db_impl.models import Base, Study, StudySubject, Specimen, MatrixPlate, MatrixTube, SpecimenType, Location
 
 Session = sessionmaker()
 
@@ -193,7 +193,8 @@ class SampleDB(object):
         with self._session_scope() as session:
             study = session.query(Study).get(study_id)
             study_subjects = [StudySubject(uid=_, study_id=study.id) for _ in uids]
-            map(session.add, study_subjects)
+            for subject in study_subjects:
+                session.add(subject)
         return study_subjects
 
     def delete_study_subject(self, study_subject_id):
@@ -312,7 +313,7 @@ class SampleDB(object):
             filter(Study.short_code == short_code).join(SpecimenType).filter(SpecimenType.label == specimen_type)
 
         if collection_date:
-            specimen_query = specimen_query.filter(Specimen.collection_date == collection_date.date())
+            specimen_query = specimen_query.filter(Specimen.collection_date == collection_date)
 
         return specimen_query.one()
 
@@ -605,7 +606,7 @@ class SampleDB(object):
         # type: (list(str)) -> list(MatrixTube)
         """
         Get matrix tubes from list of barcodes
-        :param matrix_tube_barcodes: List of unqiue barcodes identifying matrix tubes.
+        :param matrix_tube_barcodes: List of unique barcodes identifying matrix tubes.
         :return: List of MatrixTubes
         """
         with self._session_scope() as session:
