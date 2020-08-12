@@ -573,8 +573,7 @@ def delete_barcodes():
         barcodes_file = request.files.get('files')
         barcodes = bf.parse_barcode_file(barcodes_file)
         matrix_tubes = db.get_matrix_tubes(barcodes)
-        specimens = [_.specimen for _ in matrix_tubes]
-        matrix_tube_ids, specimen_ids = db.delete_matrix_tubes_and_specimens(matrix_tubes, specimens)
+        matrix_tube_ids, specimen_ids = db.delete_matrix_tubes(matrix_tubes)
         return jsonify(data={'matrix_tube_ids': matrix_tube_ids,
                              'specimen_ids': specimen_ids},
                        error={})
