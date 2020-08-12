@@ -607,22 +607,14 @@ def search_by_barcode():
         )
         entries = db.convert_barcoded_entries(barcoded_entries)
         if entries:
-            if "Date" in entries[0].keys():
-                new_header = [
-                    "Study Subject UID",
-                    "Study Short Code",
-                    "Date",
-                    "Specimen Type",
-                    "Comments",
-                ]
-            else:
-                new_header = [
-                    "Study Subject UID",
-                    "Study Short Code",
-                    "Specimen Type",
-                    "Comments",
-                ]
-            header = fields[:barcode_index] + new_header + fields[barcode_index + 1 :]
+            additional_fields = [
+                "Study Subject UID",
+                "Date",
+                "Study Short Code",
+                "Specimen Type",
+                "Comments"
+            ]
+            header = fields[:barcode_index] + additional_fields + fields[barcode_index + 1 :]
             temp_path = bf.create_barcode_search_file(entries, header)
             return send_file(
                 temp_path, as_attachment=True, attachment_filename="barcode_search.csv"
