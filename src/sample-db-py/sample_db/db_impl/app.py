@@ -22,7 +22,16 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 
-from sample_db.db_impl.models import Base, Study, StudySubject, Specimen, MatrixPlate, MatrixTube, SpecimenType, Location
+from sample_db.db_impl.models import (
+    Base,
+    Study,
+    StudySubject,
+    Specimen,
+    MatrixPlate,
+    MatrixTube,
+    SpecimenType,
+    Location,
+)
 
 Session = sessionmaker()
 
@@ -40,15 +49,13 @@ class SampleDB(object):
         :param conn_string:
         :param kwargs:
         """
-        if 'sqlite' in conn_string:
+        if "sqlite" in conn_string:
             listen(Engine, "connect", set_sqlite_pragma)
 
         self._conn_string = conn_string
         self.engine = create_engine(conn_string, **kwargs)
         Base.metadata.create_all(self.engine)
         self._session = Session(bind=self.engine)
-
-
 
     @contextmanager
     def _session_scope(self):
@@ -67,7 +74,15 @@ class SampleDB(object):
             self._session.rollback()
             raise
 
-    def create_study(self, title, short_code, is_longitudinal, lead_person, description=None, **kwargs):
+    def create_study(
+        self,
+        title,
+        short_code,
+        is_longitudinal,
+        lead_person,
+        description=None,
+        **kwargs
+    ):
         # type: (str, str, bool, str, str) -> Study
         """
         :param title: Unique title of study
@@ -78,8 +93,13 @@ class SampleDB(object):
         :return: Newly created study.
         """
         with self._session_scope() as session:
-            study = Study(title=title, short_code=short_code, is_longitudinal=is_longitudinal, lead_person=lead_person,
-                          description=description)  # type: Study
+            study = Study(
+                title=title,
+                short_code=short_code,
+                is_longitudinal=is_longitudinal,
+                lead_person=lead_person,
+                description=description,
+            )  # type: Study
             session.add(study)
         return study
 
@@ -92,9 +112,24 @@ class SampleDB(object):
         """
         with self._session_scope() as session:
             study = session.query(Study).get(study_id)  # type: Study
-            study_subjects = session.query(StudySubject).filter(StudySubject.study_id == study_id).all() # type: list[StudySubject]
-            specimens = session.query(Specimen).join(StudySubject).filter(StudySubject.study_id == study_id).all() # type: list[Specimen]
-            matrix_tubes = session.query(MatrixTube).join(Specimen).join(StudySubject).filter(StudySubject.study_id == study_id).all()
+            study_subjects = (
+                session.query(StudySubject)
+                .filter(StudySubject.study_id == study_id)
+                .all()
+            )  # type: list[StudySubject]
+            specimens = (
+                session.query(Specimen)
+                .join(StudySubject)
+                .filter(StudySubject.study_id == study_id)
+                .all()
+            )  # type: list[Specimen]
+            matrix_tubes = (
+                session.query(MatrixTube)
+                .join(Specimen)
+                .join(StudySubject)
+                .filter(StudySubject.study_id == study_id)
+                .all()
+            )
         return study, study_subjects, specimens, matrix_tubes
 
     @staticmethod
@@ -116,9 +151,24 @@ class SampleDB(object):
             old_study.short_code = study.short_code
             old_study.is_longitudinal = study.is_longitudinal
             old_study.lead_person = study.lead_person
-            study_subjects = session.query(StudySubject).filter(StudySubject.study_id == old_study.id).all() # type: list[StudySubject]
-            specimens = session.query(Specimen).join(StudySubject).filter(StudySubject.study_id == old_study.id).all() # type: list[Specimen]
-            matrix_tubes = session.query(MatrixTube).join(Specimen).join(StudySubject).filter(StudySubject.study_id == old_study.id).all()
+            study_subjects = (
+                session.query(StudySubject)
+                .filter(StudySubject.study_id == old_study.id)
+                .all()
+            )  # type: list[StudySubject]
+            specimens = (
+                session.query(Specimen)
+                .join(StudySubject)
+                .filter(StudySubject.study_id == old_study.id)
+                .all()
+            )  # type: list[Specimen]
+            matrix_tubes = (
+                session.query(MatrixTube)
+                .join(Specimen)
+                .join(StudySubject)
+                .filter(StudySubject.study_id == old_study.id)
+                .all()
+            )
         return old_study, study_subjects, specimens, matrix_tubes
 
     def update_study(self, id, d):
@@ -127,12 +177,24 @@ class SampleDB(object):
             with session.no_autoflush:
                 study = session.query(Study).get(id)
                 study.update(d)
-            study_subjects = session.query(StudySubject).filter(
-                StudySubject.study_id == study.id).all()  # type: list[StudySubject]
-            specimens = session.query(Specimen).join(StudySubject).filter(
-                StudySubject.study_id == study.id).all()  # type: list[Specimen]
-            matrix_tubes = session.query(MatrixTube).join(Specimen).join(StudySubject).filter(
-                StudySubject.study_id == study.id).all()
+            study_subjects = (
+                session.query(StudySubject)
+                .filter(StudySubject.study_id == study.id)
+                .all()
+            )  # type: list[StudySubject]
+            specimens = (
+                session.query(Specimen)
+                .join(StudySubject)
+                .filter(StudySubject.study_id == study.id)
+                .all()
+            )  # type: list[Specimen]
+            matrix_tubes = (
+                session.query(MatrixTube)
+                .join(Specimen)
+                .join(StudySubject)
+                .filter(StudySubject.study_id == study.id)
+                .all()
+            )
         return study, study_subjects, specimens, matrix_tubes
 
     def delete_study(self, study):
@@ -160,7 +222,12 @@ class SampleDB(object):
         :return: StudySubject[]
         """
         with self._session_scope() as session:
-            study_subjects = session.query(StudySubject).join(Study).filter(Study.id == study_id).all()
+            study_subjects = (
+                session.query(StudySubject)
+                .join(Study)
+                .filter(Study.id == study_id)
+                .all()
+            )
         return study_subjects
 
     def add_study_subject(self, uid, study_id):
@@ -199,14 +266,17 @@ class SampleDB(object):
 
     def delete_study_subject(self, study_subject_id):
         with self._session_scope() as session:
-            study_subject = session.query(StudySubject).get(study_subject_id) # type: StudySubject
+            study_subject = session.query(StudySubject).get(
+                study_subject_id
+            )  # type: StudySubject
             if not study_subject:
                 raise NoResultFound
             if study_subject.specimens:
-                raise ValueError("Cannot delete study subject with associated specimens.")
+                raise ValueError(
+                    "Cannot delete study subject with associated specimens."
+                )
             session.delete(study_subject)
         return True
-
 
     def register_new_location(self, description, **kwargs):
         # type: (str) -> Location
@@ -309,11 +379,20 @@ class SampleDB(object):
         :param collection_date: The date of collection. Required for longitudinal studies.
         :return: Specimen
         """
-        specimen_query = session.query(Specimen).join(StudySubject).filter(StudySubject.uid == uid).join(Study).\
-            filter(Study.short_code == short_code).join(SpecimenType).filter(SpecimenType.label == specimen_type)
+        specimen_query = (
+            session.query(Specimen)
+            .join(StudySubject)
+            .filter(StudySubject.uid == uid)
+            .join(Study)
+            .filter(Study.short_code == short_code)
+            .join(SpecimenType)
+            .filter(SpecimenType.label == specimen_type)
+        )
 
         if collection_date:
-            specimen_query = specimen_query.filter(Specimen.collection_date == collection_date)
+            specimen_query = specimen_query.filter(
+                Specimen.collection_date == collection_date
+            )
 
         return specimen_query.one()
 
@@ -329,9 +408,18 @@ class SampleDB(object):
         :param collection_date: The date of collection. Required for longitudinal studies.
         :return: Specimen
         """
-        study_subject = session.query(StudySubject).join(Study).filter(Study.short_code == short_code)\
-            .filter(StudySubject.uid == uid).one()
-        specimen_type = session.query(SpecimenType).filter(SpecimenType.label == specimen_type).one()
+        study_subject = (
+            session.query(StudySubject)
+            .join(Study)
+            .filter(Study.short_code == short_code)
+            .filter(StudySubject.uid == uid)
+            .one()
+        )
+        specimen_type = (
+            session.query(SpecimenType)
+            .filter(SpecimenType.label == specimen_type)
+            .one()
+        )
         specimen = Specimen()
         specimen.study_subject = study_subject
         specimen.specimen_type = specimen_type
@@ -348,11 +436,18 @@ class SampleDB(object):
         :return:
         """
         with self._session_scope() as session:
-            specimen_query = session.query(Specimen).join(StudySubject).filter(StudySubject.uid == uid)\
-                .join(Study).filter(Study.short_code == short_code)
+            specimen_query = (
+                session.query(Specimen)
+                .join(StudySubject)
+                .filter(StudySubject.uid == uid)
+                .join(Study)
+                .filter(Study.short_code == short_code)
+            )
 
             if collection_date:
-                specimen_query = specimen_query.filter(Specimen.collection_date == collection_date)
+                specimen_query = specimen_query.filter(
+                    Specimen.collection_date == collection_date
+                )
             specimens = specimen_query.all()
         return specimens
 
@@ -364,13 +459,31 @@ class SampleDB(object):
     def get_matrix_plate(self, plate_id):
         with self._session_scope() as session:
             plate = session.query(MatrixPlate).get(plate_id)
-            study_subjects = session.query(StudySubject).join(Specimen).join(MatrixTube).join(MatrixPlate).\
-                filter(MatrixPlate.id == plate_id).all()
-            specimens = session.query(Specimen).join(MatrixTube).join(MatrixPlate).filter(MatrixPlate.id == plate_id).all()
+            study_subjects = (
+                session.query(StudySubject)
+                .join(Specimen)
+                .join(MatrixTube)
+                .join(MatrixPlate)
+                .filter(MatrixPlate.id == plate_id)
+                .all()
+            )
+            specimens = (
+                session.query(Specimen)
+                .join(MatrixTube)
+                .join(MatrixPlate)
+                .filter(MatrixPlate.id == plate_id)
+                .all()
+            )
         return plate, study_subjects, specimens, plate.tubes
 
-    def add_matrix_plate_with_specimens(self, plate_uid, location_id, specimen_entries, create_missing_specimens=False,
-                                        create_missing_subjects=False):
+    def add_matrix_plate_with_specimens(
+        self,
+        plate_uid,
+        location_id,
+        specimen_entries,
+        create_missing_specimens=False,
+        create_missing_subjects=False,
+    ):
         # type: (str, int, list(dict)) -> list(MatrixTube)
         """
         Add a new matrix plate with new specimens
@@ -395,47 +508,79 @@ class SampleDB(object):
         specimens = []
         with self._session_scope() as session:
             try:
-                matrix_plate = session.query(MatrixPlate).filter(MatrixPlate.uid == plate_uid).one()
+                matrix_plate = (
+                    session.query(MatrixPlate)
+                    .filter(MatrixPlate.uid == plate_uid)
+                    .one()
+                )
             except NoResultFound:
                 matrix_plate = MatrixPlate(uid=plate_uid, location_id=location_id)
                 session.add(matrix_plate)
                 session.flush()
             for specimen_entry in specimen_entries:
-                uid = specimen_entry['uid']
-                short_code = specimen_entry['short_code']
-                specimen_type = specimen_entry['specimen_type']
-                collection_date = specimen_entry.get('collection_date')
+                uid = specimen_entry["uid"]
+                short_code = specimen_entry["short_code"]
+                specimen_type = specimen_entry["specimen_type"]
+                collection_date = specimen_entry.get("collection_date")
                 study = self._get_study_by_short_code(session, short_code)
                 try:
-                    specimen = self._get_specimen(session, uid, short_code, specimen_type, collection_date)
+                    specimen = self._get_specimen(
+                        session, uid, short_code, specimen_type, collection_date
+                    )
                 except NoResultFound:
                     if create_missing_specimens:
                         try:
-                            specimen = self._add_specimen(session, uid, short_code, specimen_type, collection_date)
+                            specimen = self._add_specimen(
+                                session, uid, short_code, specimen_type, collection_date
+                            )
                         except NoResultFound:
                             if create_missing_subjects:
                                 self._add_study_subject(session, study.id, uid)
                                 session.flush()
-                                specimen = self._add_specimen(session, uid, short_code, specimen_type, collection_date)
+                                specimen = self._add_specimen(
+                                    session,
+                                    uid,
+                                    short_code,
+                                    specimen_type,
+                                    collection_date,
+                                )
                             else:
-                                raise ValueError("Sample {} in Study {} does not exist.".format(uid, short_code))
+                                raise ValueError(
+                                    "Sample {} in Study {} does not exist.".format(
+                                        uid, short_code
+                                    )
+                                )
                     else:
                         raise ValueError(
-                            "{} Specimen for Sample {} does not exist in Study {}".format(specimen_type, uid,
-                                                                                          short_code))
+                            "{} Specimen for Sample {} does not exist in Study {}".format(
+                                specimen_type, uid, short_code
+                            )
+                        )
                 session.flush()
 
-                barcode = specimen_entry['barcode']
-                well_position = specimen_entry['well_position']
-                comments = specimen_entry.get('comments')
-                matrix_tube = MatrixTube(barcode=barcode, comments=comments, well_position=well_position)
+                barcode = specimen_entry["barcode"]
+                well_position = specimen_entry["well_position"]
+                comments = specimen_entry.get("comments")
+                matrix_tube = MatrixTube(
+                    barcode=barcode, comments=comments, well_position=well_position
+                )
                 matrix_tube.plate = matrix_plate
                 matrix_tube.specimen = specimen
                 session.add(matrix_tube)
                 matrix_tubes.append(matrix_tube)
-            study_subjects = session.query(StudySubject).join(Specimen).join(MatrixTube).\
-                filter(MatrixTube.plate_id == matrix_plate.id).all()
-            specimens = session.query(Specimen).join(MatrixTube).filter(MatrixTube.plate_id == matrix_plate.id).all()
+            study_subjects = (
+                session.query(StudySubject)
+                .join(Specimen)
+                .join(MatrixTube)
+                .filter(MatrixTube.plate_id == matrix_plate.id)
+                .all()
+            )
+            specimens = (
+                session.query(Specimen)
+                .join(MatrixTube)
+                .filter(MatrixTube.plate_id == matrix_plate.id)
+                .all()
+            )
         return matrix_plate, study_subjects, specimens, matrix_tubes
 
     def update_matrix_tube_locations(self, matrix_tube_entries):
@@ -459,8 +604,8 @@ class SampleDB(object):
                 study_subjects = []
                 specimens = []
                 for matrix_tube_entry in matrix_tube_entries:
-                    barcode = matrix_tube_entry['barcode']
-                    plate_uid = matrix_tube_entry['plate_uid']
+                    barcode = matrix_tube_entry["barcode"]
+                    plate_uid = matrix_tube_entry["plate_uid"]
 
                     # Yes, this looks weird, but it's necessary to be able to move tubes around. Essentially every tube is
                     # being moved to a temporary "mirror" state, where the well position is prefixed with a '-'. After that
@@ -468,20 +613,34 @@ class SampleDB(object):
                     # do an in-place move, the unique constraint of the database triggers and throws an error. This is only
                     # a problem in MySQL and SQLITE.
 
-                    well_position = '-' + matrix_tube_entry['well_position']
-                    temp_matrix_tube_map[barcode] = matrix_tube_entry['well_position']
+                    well_position = "-" + matrix_tube_entry["well_position"]
+                    temp_matrix_tube_map[barcode] = matrix_tube_entry["well_position"]
 
-                    comments = matrix_tube_entry.get('comments')
+                    comments = matrix_tube_entry.get("comments")
                     try:
-                        matrix_tube = session.query(MatrixTube).filter(MatrixTube.barcode == barcode).one()  # type: MatrixTube
+                        matrix_tube = (
+                            session.query(MatrixTube)
+                            .filter(MatrixTube.barcode == barcode)
+                            .one()
+                        )  # type: MatrixTube
                     except NoResultFound:
-                        raise NoResultFound('Matrix Tube with barcode {} does not exist.'.format(barcode))
+                        raise NoResultFound(
+                            "Matrix Tube with barcode {} does not exist.".format(
+                                barcode
+                            )
+                        )
                     old_plate = matrix_tube.plate
 
                     try:
-                        destination_plate = session.query(MatrixPlate).filter(MatrixPlate.uid == plate_uid).one()  # type: MatrixPlate
+                        destination_plate = (
+                            session.query(MatrixPlate)
+                            .filter(MatrixPlate.uid == plate_uid)
+                            .one()
+                        )  # type: MatrixPlate
                     except NoResultFound:
-                        raise NoResultFound('Matrix plate with UID {} does not exist.'.format(plate_uid))
+                        raise NoResultFound(
+                            "Matrix plate with UID {} does not exist.".format(plate_uid)
+                        )
                     matrix_tube.plate = destination_plate
                     matrix_tube.well_position = well_position
                     if comments:
@@ -528,38 +687,56 @@ class SampleDB(object):
         results = []
         with self._session_scope() as session:
             for specimen_entry in specimen_entries:
-                uid = specimen_entry['uid']
-                short_code = specimen_entry['short_code']
-                specimen_type = specimen_entry['specimen_type']
-                collection_date = specimen_entry.get('collection_date')
+                uid = specimen_entry["uid"]
+                short_code = specimen_entry["short_code"]
+                specimen_type = specimen_entry["specimen_type"]
+                collection_date = specimen_entry.get("collection_date")
                 try:
-                    specimen = self._get_specimen(session, uid, short_code, specimen_type, collection_date)
-                    specimen_matrix_tubes = [_ for _ in specimen.storage_containers if _.discriminator == 'matrix_tube']
+                    specimen = self._get_specimen(
+                        session, uid, short_code, specimen_type, collection_date
+                    )
+                    specimen_matrix_tubes = [
+                        _
+                        for _ in specimen.storage_containers
+                        if _.discriminator == "matrix_tube"
+                    ]
                 except NoResultFound:
                     specimen_matrix_tubes = []
                 for matrix_tube in specimen_matrix_tubes:
                     r = {
-                        'UID': uid,
-                        'Study Short Code': short_code,
-                        'Specimen Type': specimen_type,
-                        'Plate UID': matrix_tube.plate.uid,
-                        'Well': matrix_tube.well_position,
-                        'Comments': matrix_tube.comments
+                        "UID": uid,
+                        "Study Short Code": short_code,
+                        "Specimen Type": specimen_type,
+                        "Plate UID": matrix_tube.plate.uid,
+                        "Well": matrix_tube.well_position,
+                        "Comments": matrix_tube.comments,
                     }
                     if collection_date:
-                        r.update({'Date': datetime.datetime.strftime(collection_date, date_format)})
+                        r.update(
+                            {
+                                "Date": datetime.datetime.strftime(
+                                    collection_date, date_format
+                                )
+                            }
+                        )
                     results.append(r)
                 if not specimen_matrix_tubes:
                     r = {
-                        'UID': uid,
-                        'Study Short Code': short_code,
-                        'Specimen Type': specimen_type,
-                        'Plate UID': 'Specimen not found',
-                        'Well': '',
-                        'Comments': ''
+                        "UID": uid,
+                        "Study Short Code": short_code,
+                        "Specimen Type": specimen_type,
+                        "Plate UID": "Specimen not found",
+                        "Well": "",
+                        "Comments": "",
                     }
                     if collection_date:
-                        r.update({'Date': datetime.datetime.strftime(collection_date, date_format)})
+                        r.update(
+                            {
+                                "Date": datetime.datetime.strftime(
+                                    collection_date, date_format
+                                )
+                            }
+                        )
                     results.append(r)
         return results
 
@@ -567,13 +744,19 @@ class SampleDB(object):
         results = []
         with self._session_scope() as session:
             for entry in specimen_entries:
-                uid = entry['uid']
-                short_code = entry['short_code']
-                specimen_type = entry['specimen_type']
-                collection_date = entry.get('collection_date')
+                uid = entry["uid"]
+                short_code = entry["short_code"]
+                specimen_type = entry["specimen_type"]
+                collection_date = entry.get("collection_date")
                 try:
-                    specimen = self._get_specimen(session, uid, short_code, specimen_type, collection_date)
-                    specimen_matrix_tubes = [_ for _ in specimen.storage_containers if _.discriminator == 'matrix_tube']
+                    specimen = self._get_specimen(
+                        session, uid, short_code, specimen_type, collection_date
+                    )
+                    specimen_matrix_tubes = [
+                        _
+                        for _ in specimen.storage_containers
+                        if _.discriminator == "matrix_tube"
+                    ]
                 except NoResultFound:
                     specimen_matrix_tubes = []
                 results += specimen_matrix_tubes
@@ -588,7 +771,11 @@ class SampleDB(object):
         :param matrix_tube_barcode: Unique barcode identifying matrix tube.
         :return: The corresponding MatrixTube
         """
-        matrix_tube = session.query(MatrixTube).filter(MatrixTube.barcode == matrix_tube_barcode).one()
+        matrix_tube = (
+            session.query(MatrixTube)
+            .filter(MatrixTube.barcode == matrix_tube_barcode)
+            .one()
+        )
         return matrix_tube
 
     def get_matrix_tube(self, matrix_tube_barcode):
@@ -610,7 +797,9 @@ class SampleDB(object):
         :return: List of MatrixTubes
         """
         with self._session_scope() as session:
-            matrix_tubes = [self._get_matrix_tube(session, _) for _ in matrix_tube_barcodes]
+            matrix_tubes = [
+                self._get_matrix_tube(session, _) for _ in matrix_tube_barcodes
+            ]
         return matrix_tubes
 
     def set_matrix_tubes_exhausted(self, matrix_tube_barcodes):
@@ -641,20 +830,26 @@ class SampleDB(object):
         results = []
         with self._session_scope() as session:
             for entry in barcoded_entries:
-                barcode = entry.pop('barcode')
+                barcode = entry.pop("barcode")
                 try:
                     matrix_tube = self._get_matrix_tube(session, barcode)
-                    entry['Study Subject UID'] = matrix_tube.specimen.study_subject.uid
-                    entry['Specimen Type'] = matrix_tube.specimen.specimen_type.label
-                    entry['Study Short Code'] = matrix_tube.specimen.study_subject.study.short_code
-                    entry['Comments'] = matrix_tube.comments
+                    entry["Study Subject UID"] = matrix_tube.specimen.study_subject.uid
+                    entry["Specimen Type"] = matrix_tube.specimen.specimen_type.label
+                    entry[
+                        "Study Short Code"
+                    ] = matrix_tube.specimen.study_subject.study.short_code
+                    entry["Comments"] = matrix_tube.comments
                     if matrix_tube.specimen.collection_date:
-                        entry['Date'] = datetime.date.strftime(matrix_tube.specimen.collection_date, date_format)
+                        entry["Date"] = datetime.date.strftime(
+                            matrix_tube.specimen.collection_date, date_format
+                        )
                 except NoResultFound:
-                    entry['Study Subject UID'] = "Barcode ({}) Not Found".format(barcode)
-                    entry['Specimen Type'] = ""
-                    entry['Study Short Code'] = ""
-                    entry['Comments'] = ""
+                    entry["Study Subject UID"] = "Barcode ({}) Not Found".format(
+                        barcode
+                    )
+                    entry["Specimen Type"] = ""
+                    entry["Study Short Code"] = ""
+                    entry["Comments"] = ""
                 results.append(entry)
         return results
 
@@ -675,7 +870,11 @@ class SampleDB(object):
             specimens = []
             for matrix_tube in matrix_tubes:
                 specimen = matrix_tube.specimen
-                specimen_matrix_tube_ids = [_.id for _ in specimen.storage_containers if _.discriminator == 'matrix_tube']
+                specimen_matrix_tube_ids = [
+                    _.id
+                    for _ in specimen.storage_containers
+                    if _.discriminator == "matrix_tube"
+                ]
                 if set(specimen_matrix_tube_ids).issubset(matrix_tube_ids):
                     specimens.append(specimen)
             specimen_ids = list(set([_.id for _ in specimens]))

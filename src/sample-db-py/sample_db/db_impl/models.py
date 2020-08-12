@@ -16,11 +16,21 @@
 
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, Date, String, Integer, ForeignKey, Boolean, event
+from sqlalchemy import (
+    Column,
+    DateTime,
+    Date,
+    String,
+    Integer,
+    ForeignKey,
+    Boolean,
+    event,
+)
 
 from sqlalchemy.schema import UniqueConstraint
 from sqlalchemy.orm import relationship, validates
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
+
 # from sample_db import conf
 import logging
 
@@ -28,12 +38,15 @@ import logging
 class Base(object):
     id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
     created = Column(DateTime, default=datetime.utcnow, nullable=False)
-    last_updated = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
-    read_only_fields = {'id', 'created', 'last_updated'}
+    last_updated = Column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+    )
+    read_only_fields = {"id", "created", "last_updated"}
 
     def __repr__(self):
-        return "<{}: [id]: {}, [created]: {}, [updated]: {}>".format(self.__class__.__name__, self.id, self.created,
-                                                                     self.last_updated)
+        return "<{}: [id]: {}, [created]: {}, [updated]: {}>".format(
+            self.__class__.__name__, self.id, self.created, self.last_updated
+        )
 
     def __init__(self, **kwargs):
         super(Base, self).__init__(**kwargs)
@@ -44,6 +57,7 @@ class Base(object):
                 setattr(self, k, d[k])
                 # getattr(self, k).changed()
         return self
+
 
 Base = declarative_base(cls=Base)
 
@@ -61,14 +75,16 @@ Base = declarative_base(cls=Base)
 
 
 class Study(Base):
-    __tablename__ = 'study'
+    __tablename__ = "study"
     title = Column(String, unique=True, index=True, nullable=False)
     description = Column(String)
-    short_code = Column(String, unique=True, index=True, nullable=False)  # Should we constrain length?
+    short_code = Column(
+        String, unique=True, index=True, nullable=False
+    )  # Should we constrain length?
     is_longitudinal = Column(Boolean, nullable=False)
     lead_person = Column(String, nullable=False)
     hidden = Column(Boolean, nullable=False, default=False)
-    read_only_fields = Base.read_only_fields | {'subjects'}
+    read_only_fields = Base.read_only_fields | {"subjects"}
 
     def __str__(self):
         return "<{}: {}>".format(self.__class__.__name__, self.short_code)
@@ -97,17 +113,21 @@ class Study(Base):
             for subject in self.subjects:
                 for specimen in subject.specimens:
                     if not specimen.collection_date:
-                        raise ValueError("Cannot make study longitudinal, contains specimens without collection dates.")
+                        raise ValueError(
+                            "Cannot make study longitudinal, contains specimens without collection dates."
+                        )
         return is_longitudinal
 
 
 class StudySubject(Base):
-    __tablename__ = 'study_subject'
-    __table_args__ = (UniqueConstraint('uid', 'study_id', name='study_subject_study_uc'),)
+    __tablename__ = "study_subject"
+    __table_args__ = (
+        UniqueConstraint("uid", "study_id", name="study_subject_study_uc"),
+    )
     uid = Column(String, index=True, nullable=False)
-    study_id = Column(Integer, ForeignKey('study.id'))
-    study = relationship('Study', backref='subjects')
-    read_only_fields = Base.read_only_fields | {'study', 'specimens'}
+    study_id = Column(Integer, ForeignKey("study.id"))
+    study = relationship("Study", backref="subjects")
+    read_only_fields = Base.read_only_fields | {"study", "specimens"}
 
     def __str__(self):
         return "<{}: {}>".format(self.__class__.__name__, self.uid)
@@ -117,13 +137,13 @@ class StudySubject(Base):
 
 
 class SpecimenType(Base):
-    __tablename__ = 'specimen_type'
+    __tablename__ = "specimen_type"
     label = Column(String, unique=True, index=True, nullable=False)
 
     def __str__(self):
         return "<{}: {}>".format(self.__class__.__name__, self.label)
 
-    @validates('label')
+    @validates("label")
     def validate_label(self, key, label):
         if label == "":
             raise ValueError("Specimen Label cannot be blank")
@@ -131,37 +151,49 @@ class SpecimenType(Base):
 
 
 class Specimen(Base):
-    __tablename__ = 'specimen'
+    __tablename__ = "specimen"
 
     # Require that only one record of a specimen of a specific type for a specific individual collected
     # on a specific day may exist. Multiple storage containers may exist however, i.e. multiple aliquots of a specimen.
-    __table_args__ = (UniqueConstraint('study_subject_id', 'specimen_type_id', 'collection_date',
-                                       name='specimen_collection_date_uc'),)
-    study_subject_id = Column(Integer, ForeignKey('study_subject.id'), index=True, nullable=False)
-    study_subject = relationship('StudySubject', backref='specimens')
-    specimen_type_id = Column(Integer, ForeignKey('specimen_type.id'))
-    specimen_type = relationship('SpecimenType')
+    __table_args__ = (
+        UniqueConstraint(
+            "study_subject_id",
+            "specimen_type_id",
+            "collection_date",
+            name="specimen_collection_date_uc",
+        ),
+    )
+    study_subject_id = Column(
+        Integer, ForeignKey("study_subject.id"), index=True, nullable=False
+    )
+    study_subject = relationship("StudySubject", backref="specimens")
+    specimen_type_id = Column(Integer, ForeignKey("specimen_type.id"))
+    specimen_type = relationship("SpecimenType")
     collection_date = Column(Date, default=None)
 
     def __str__(self):
-        return "<{}: {} from {}>".format(self.__class__.__name__, self.specimen_type.label, self.study_subject)
+        return "<{}: {} from {}>".format(
+            self.__class__.__name__, self.specimen_type.label, self.study_subject
+        )
 
-    @validates('collection_date')
+    @validates("collection_date")
     def validate_collection_date(self, key, collection_date):
         if not collection_date:
             if self.study_subject.study.is_longitudinal:
-                raise ValueError("Not allowed to add specimens without a collection date to a longitudinal study.")
+                raise ValueError(
+                    "Not allowed to add specimens without a collection date to a longitudinal study."
+                )
         return collection_date
 
 
 class Location(Base):
-    __tablename__ = 'location'
+    __tablename__ = "location"
     description = Column(String, unique=True, nullable=False)
 
     def __str__(self):
         return "<{}: {}>".format(self.__class__.__name__, self.description)
 
-    @validates('description')
+    @validates("description")
     def validate_description(self, key, description):
         if description == "":
             raise ValueError("Location cannot be blank")
@@ -171,62 +203,83 @@ class Location(Base):
 class LocationAnnotation(object):
     @declared_attr
     def location_id(self):
-        return Column(Integer, ForeignKey('location.id'), index=True, nullable=False)
+        return Column(Integer, ForeignKey("location.id"), index=True, nullable=False)
 
     @declared_attr
     def location(self):
-        return relationship('Location', backref='specimen_containers')
+        return relationship("Location", backref="specimen_containers")
 
 
 class StorageContainer(Base):
-    __tablename__ = 'storage_container'
+    __tablename__ = "storage_container"
 
-    discriminator = Column('type', String(255))
-    __mapper_args__ = {'polymorphic_on': discriminator,
-                       'polymorphic_identity': 'base_storage_container'}
+    discriminator = Column("type", String(255))
+    __mapper_args__ = {
+        "polymorphic_on": discriminator,
+        "polymorphic_identity": "base_storage_container",
+    }
 
-    specimen_id = Column(Integer, ForeignKey('specimen.id'), index=True, nullable=False)
-    specimen = relationship('Specimen', backref='storage_containers')
+    specimen_id = Column(Integer, ForeignKey("specimen.id"), index=True, nullable=False)
+    specimen = relationship("Specimen", backref="storage_containers")
     comments = Column(String)
     exhausted = Column(Boolean, nullable=False, default=False)
 
 
 class MatrixPlate(LocationAnnotation, Base):
-    __tablename__ = 'matrix_plate'
+    __tablename__ = "matrix_plate"
     uid = Column(String, unique=True, index=True, nullable=False)
     hidden = Column(Boolean, nullable=False, default=False)
 
     def __str__(self):
-        return "<{} {}, Location: {}>".format(self.__class__.__name__, self.uid, self.location.description)
+        return "<{} {}, Location: {}>".format(
+            self.__class__.__name__, self.uid, self.location.description
+        )
 
 
 class MatrixTube(StorageContainer):
-    __tablename__ = 'matrix_tube'
+    __tablename__ = "matrix_tube"
 
     well_list = set()
-    for column in ('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'):
-        for row in ('01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'):
+    for column in ("A", "B", "C", "D", "E", "F", "G", "H"):
+        for row in (
+            "01",
+            "02",
+            "03",
+            "04",
+            "05",
+            "06",
+            "07",
+            "08",
+            "09",
+            "10",
+            "11",
+            "12",
+        ):
             well_list.add(column + row)
-            well_list.add('-' + column + row)
+            well_list.add("-" + column + row)
 
     #  The way this should really be implemented, but sqlite does not support deferred constraint checks.
     # __table_args__ = (UniqueConstraint('well_position', 'plate_id', name='well_position_plate_uc', deferrable=True,
     #                                    initially='DEFERRED'),)
 
     # Require that only one tube can occupy a given well in a plate.
-    __table_args__ = (UniqueConstraint('well_position', 'plate_id', name='well_position_plate_uc'),)
-    __mapper_args__ = {'polymorphic_identity': 'matrix_tube'}
+    __table_args__ = (
+        UniqueConstraint("well_position", "plate_id", name="well_position_plate_uc"),
+    )
+    __mapper_args__ = {"polymorphic_identity": "matrix_tube"}
 
-    id = Column(Integer, ForeignKey('storage_container.id'), primary_key=True)
-    plate_id = Column(Integer, ForeignKey('matrix_plate.id'), index=True, nullable=True)
-    plate = relationship('MatrixPlate', backref='tubes')
+    id = Column(Integer, ForeignKey("storage_container.id"), primary_key=True)
+    plate_id = Column(Integer, ForeignKey("matrix_plate.id"), index=True, nullable=True)
+    plate = relationship("MatrixPlate", backref="tubes")
     barcode = Column(String, unique=True, index=True, nullable=False)
     well_position = Column(String, nullable=False)
 
     def __str__(self):
-        return "<{}: {} {} {}>".format(self.__class__.__name__, self.barcode, self.plate.uid, self.well_position)
+        return "<{}: {} {} {}>".format(
+            self.__class__.__name__, self.barcode, self.plate.uid, self.well_position
+        )
 
-    @validates('well_position')
+    @validates("well_position")
     def validate_well_position(self, key, well_position):
         if well_position not in self.well_list:
             raise ValueError("{} is not a valid well position.".format(well_position))

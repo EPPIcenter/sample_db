@@ -10,7 +10,7 @@ def backup_db(path, backup_dir, date_format="%d-%b-%y"):
     today = datetime.date.today()
     daily_backup_exists = False
     for backup in all_backups:
-        if backup.split('.')[0] == datetime.date.strftime(today, date_format):
+        if backup.split(".")[0] == datetime.date.strftime(today, date_format):
             daily_backup_exists = True
             break
 
@@ -18,9 +18,8 @@ def backup_db(path, backup_dir, date_format="%d-%b-%y"):
         backup_dest = os.path.join(
             backup_dir,
             "{}.{}".format(
-                datetime.date.strftime(today, date_format),
-                os.path.basename(path)
-            )
+                datetime.date.strftime(today, date_format), os.path.basename(path)
+            ),
         )
         try:
             shutil.copy(path, backup_dest)

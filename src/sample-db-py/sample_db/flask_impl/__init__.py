@@ -9,7 +9,7 @@ from sample_db.flask_impl.utils import backup_db
 # conf = config['Development']
 
 # Load Configuration
-conf = config[os.environ.get('CONFIG', 'Development')]
+conf = config[os.environ.get("CONFIG", "Development")]
 
 from sample_db.db_impl.app import SampleDB
 
