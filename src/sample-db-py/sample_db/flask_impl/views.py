@@ -109,8 +109,8 @@ def check_status():
 @app.route("/study", methods=["GET"])
 def get_studies():
     studies = db.get_studies()
-    d, err = study_schema.dump(studies, many=True)
-    res = jsonify(data=d, error=err)
+    d = study_schema.dump(studies, many=True)
+    res = jsonify(data=d, error={}) #
     return res
 
 
@@ -135,14 +135,14 @@ def create_or_update_study():
                     )
                 except IntegrityError as e:
                     raise InvalidUsage(parse_integrity_error(e), status_code=403)
-            study_entries, study_error = study_schema.dump(study)
-            study_subject_entries, study_subject_error = study_subject_schema.dump(
+            study_entries = study_schema.dump(study)
+            study_subject_entries = study_subject_schema.dump(
                 study_subjects, many=True
             )
-            specimen_entries, specimen_error = specimen_schema.dump(
+            specimen_entries = specimen_schema.dump(
                 specimens, many=True
             )
-            matrix_tube_entries, matrix_tube_error = matrix_tube_schema.dump(
+            matrix_tube_entries = matrix_tube_schema.dump(
                 matrix_tubes, many=True
             )
             d = {
@@ -152,12 +152,12 @@ def create_or_update_study():
                 "matrix_tube": matrix_tube_entries,
             }
             err = {
-                "study": study_error,
-                "study_subject": study_subject_error,
-                "specimen": specimen_error,
-                "matrix_tube": matrix_tube_error,
+                "study": {},
+                "study_subject": {},
+                "specimen": {},
+                "matrix_tube": {},
             }
-            res = jsonify(data=d, error=err)
+            res = jsonify(data=d)
             return res
         except IntegrityError as e:
             raise InvalidUsage(parse_integrity_error(e), status_code=403)
@@ -170,12 +170,12 @@ def create_or_update_study():
 def get_study(study_id):
     try:
         study, study_subjects, specimens, matrix_tubes = db.get_study(study_id)
-        study_entries, study_error = study_schema.dump(study)
-        study_subject_entries, study_subject_error = study_subject_schema.dump(
+        study_entries = study_schema.dump(study)
+        study_subject_entries = study_subject_schema.dump(
             study_subjects, many=True
         )
-        specimen_entries, specimen_error = specimen_schema.dump(specimens, many=True)
-        matrix_tube_entries, matrix_tube_error = matrix_tube_schema.dump(
+        specimen_entries = specimen_schema.dump(specimens, many=True)
+        matrix_tube_entries = matrix_tube_schema.dump(
             matrix_tubes, many=True
         )
         d = {
@@ -185,10 +185,10 @@ def get_study(study_id):
             "matrix_tube": matrix_tube_entries,
         }
         err = {
-            "study": study_error,
-            "study_subject": study_subject_error,
-            "specimen": specimen_error,
-            "matrix_tube": matrix_tube_error,
+            "study": {},
+            "study_subject": {},
+            "specimen": {},
+            "matrix_tube": {},
         }
 
         res = jsonify(data=d, error=err)
@@ -214,8 +214,8 @@ def delete_study(study_id):
 @app.route("/study/<int:study_id>/study_subject", methods=["GET"])
 def get_study_subjects(study_id):
     study_subjects = db.get_study_subjects(study_id)
-    d, err = study_subject_schema.dump(study_subjects, many=True)
-    res = jsonify(data=d, error=err)
+    d = study_subject_schema.dump(study_subjects, many=True)
+    res = jsonify(data=d, error={})
     return res
 
 
@@ -230,8 +230,8 @@ def add_study_subject_file(study_id):
             raise KeyError
         db.add_study_subjects(study_subject_uids, study_id)
         study_subjects = db.get_study_subjects(study_id)
-        d, err = study_subject_schema.dump(study_subjects, many=True)
-        return jsonify(success=True, data=d, error=err)
+        d = study_subject_schema.dump(study_subjects, many=True)
+        return jsonify(success=True, data=d, error={})
     except NoResultFound:
         raise InvalidUsage("Study does not exist", status_code=404)
     except IntegrityError as e:
@@ -246,8 +246,8 @@ def add_study_subject_file(study_id):
 @app.route("/location", methods=["GET"])
 def get_locations():
     locations = db.get_locations()
-    d, err = location_schema.dump(locations, many=True)
-    return jsonify(data=d, error=err)
+    d = location_schema.dump(locations, many=True)
+    return jsonify(data=d, error={})
 
 
 @app.route("/location", methods=["POST"])
@@ -260,8 +260,8 @@ def create_or_update_location():
             else:
                 location_id = location.pop("id")
                 location = db.update_location(location_id, location)
-            d, err = location_schema.dump(location)
-            return jsonify(success=True, data=d, error=err)
+            d = location_schema.dump(location)
+            return jsonify(success=True, data=d, error={})
         except IntegrityError as e:
             raise InvalidUsage(parse_integrity_error(e), status_code=403)
         except ValueError as e:
@@ -273,8 +273,8 @@ def create_or_update_location():
 def get_location(location_id):
     try:
         location = db.get_location(location_id)
-        d, err = location_schema.dump(location)
-        res = jsonify(data=d, error=err)
+        d = location_schema.dump(location)
+        res = jsonify(data=d, error={})
         return res
     except NoResultFound:
         raise InvalidUsage("Location does not exist", status_code=404)
@@ -294,8 +294,8 @@ def delete_location(location_id):
 @app.route("/specimen-type", methods=["GET"])
 def get_specimen_types():
     specimen_types = db.get_specimen_types()
-    d, err = specimen_type_schema.dump(specimen_types, many=True)
-    return jsonify(data=d, error=err)
+    d = specimen_type_schema.dump(specimen_types, many=True)
+    return jsonify(data=d, error={})
 
 
 @app.route("/specimen-type", methods=["POST"])
@@ -308,8 +308,8 @@ def create_or_update_specimen_type():
             else:
                 specimen_type_id = specimen_type.pop("id")
                 specimen_type = db.update_specimen_type(specimen_type_id, specimen_type)
-            d, err = specimen_type_schema.dump(specimen_type)
-            return jsonify(success=True, data=d, error=err)
+            d = specimen_type_schema.dump(specimen_type)
+            return jsonify(success=True, data=d, error={})
         except IntegrityError as e:
             raise InvalidUsage(parse_integrity_error(e), status_code=403)
         except ValueError as e:
@@ -321,8 +321,8 @@ def create_or_update_specimen_type():
 def get_specimen_type(specimen_type_id):
     try:
         location = db.get_specimen_type(specimen_type_id)
-        d, err = specimen_type_schema.dump(location)
-        res = jsonify(data=d, error=err)
+        d = specimen_type_schema.dump(location)
+        res = jsonify(data=d, error={})
         return res
     except NoResultFound:
         raise InvalidUsage("Specimen Type does not exist", status_code=404)
@@ -358,8 +358,8 @@ def delete_study_subject(study_subject_id):
 @app.route("/plate", methods=["GET"])
 def get_plates():
     plates = db.get_matrix_plates()
-    d, err = matrix_plate_schema.dump(plates, many=True)
-    return jsonify(data=d, error=err)
+    d = matrix_plate_schema.dump(plates, many=True)
+    return jsonify(data=d, error={})
 
 
 @app.route("/plate/<int:plate_id>", methods=["GET"])
@@ -368,12 +368,12 @@ def get_plate(plate_id):
         plate, study_subjects, specimens, matrix_tubes = db.get_matrix_plate(plate_id)
         if not plate:
             raise NoResultFound
-        plate_entry, plate_err = matrix_plate_schema.dump(plate)
-        study_subject_entry, study_subject_err = study_subject_schema.dump(
+        plate_entry = matrix_plate_schema.dump(plate)
+        study_subject_entry = study_subject_schema.dump(
             study_subjects, many=True
         )
-        specimen_entry, specimen_err = specimen_schema.dump(specimens, many=True)
-        matrix_tube_entry, matrix_tube_err = matrix_tube_schema.dump(
+        specimen_entry = specimen_schema.dump(specimens, many=True)
+        matrix_tube_entry = matrix_tube_schema.dump(
             matrix_tubes, many=True
         )
         d = {
@@ -383,10 +383,10 @@ def get_plate(plate_id):
             "matrix_tube": matrix_tube_entry,
         }
         err = {
-            "matrix_plate": plate_err,
-            "study_subject": study_subject_err,
-            "specimen": specimen_err,
-            "matrix_tube": matrix_tube_err,
+            "matrix_plate": {},
+            "study_subject": {},
+            "specimen": {},
+            "matrix_tube": {},
         }
         return jsonify(data=d, error=err)
     except NoResultFound:
@@ -418,12 +418,12 @@ def upload_plate():
             create_missing_specimens,
             create_missing_subjects,
         )
-        plate_entry, plate_err = matrix_plate_schema.dump(matrix_plate)
-        study_subject_entry, study_subject_err = study_subject_schema.dump(
+        plate_entry = matrix_plate_schema.dump(matrix_plate)
+        study_subject_entry = study_subject_schema.dump(
             study_subjects, many=True
         )
-        specimen_entry, specimen_err = specimen_schema.dump(specimens, many=True)
-        matrix_tube_entry, matrix_tube_err = matrix_tube_schema.dump(
+        specimen_entry = specimen_schema.dump(specimens, many=True)
+        matrix_tube_entry = matrix_tube_schema.dump(
             matrix_tubes, many=True
         )
         d = {
@@ -433,10 +433,10 @@ def upload_plate():
             "matrix_tube": matrix_tube_entry,
         }
         err = {
-            "matrix_plate": plate_err,
-            "study_subject": study_subject_err,
-            "specimen": specimen_err,
-            "matrix_tube": matrix_tube_err,
+            "matrix_plate": {},
+            "study_subject": {},
+            "specimen": {},
+            "matrix_tube": {},
         }
         return jsonify(data=d, error=err)
     except KeyError:
@@ -464,9 +464,9 @@ def hide_plates():
     if to_hide is not None:
         try:
             plates = db.hide_plates(to_hide)
-            plate_entry, plate_err = matrix_plate_schema.dump(plates, many=True)
+            plate_entry = matrix_plate_schema.dump(plates, many=True)
             d = {"matrix_plate": plate_entry}
-            err = {"matrix_plate": plate_err}
+            err = {"matrix_plate": {}}
             return jsonify(data=d, error=err)
         except NoResultFound:
             raise InvalidUsage(
@@ -482,9 +482,9 @@ def unhide_plates():
     if to_show is not None:
         try:
             plates = db.unhide_plates(to_show)
-            plate_entry, plate_err = matrix_plate_schema.dump(plates, many=True)
+            plate_entry = matrix_plate_schema.dump(plates, many=True)
             d = {"matrix_plate": plate_entry}
-            err = {"matrix_plate": plate_err}
+            err = {"matrix_plate": {}}
             return jsonify(data=d, error=err)
         except NoResultFound:
             raise InvalidUsage(
@@ -510,15 +510,15 @@ def update_plates():
             matrix_tubes,
         ) = db.update_matrix_tube_locations(updated_matrix_tubes)
 
-        plate_entry, plate_err = matrix_plate_schema.dump(matrix_plates, many=True)
+        plate_entry = matrix_plate_schema.dump(matrix_plates, many=True)
 
-        study_subject_entry, study_subject_err = study_subject_schema.dump(
+        study_subject_entry = study_subject_schema.dump(
             study_subjects, many=True
         )
 
-        specimen_entry, specimen_err = specimen_schema.dump(specimens, many=True)
+        specimen_entry = specimen_schema.dump(specimens, many=True)
 
-        matrix_tube_entry, matrix_tube_err = matrix_tube_schema.dump(
+        matrix_tube_entry = matrix_tube_schema.dump(
             matrix_tubes, many=True
         )
 
@@ -529,10 +529,10 @@ def update_plates():
             "matrix_tube": matrix_tube_entry,
         }
         err = {
-            "matrix_plate": plate_err,
-            "study_subject": study_subject_err,
-            "specimen": specimen_err,
-            "matrix_tube": matrix_tube_err,
+            "matrix_plate": {},
+            "study_subject": {},
+            "specimen": {},
+            "matrix_tube": {},
         }
         return jsonify(data=d, error=err)
 
