@@ -70,7 +70,7 @@ class SampleDB(object):
         try:
             yield self._session
             self._session.commit()
-        except:
+        except Exception:
             self._session.rollback()
             raise
 
@@ -81,7 +81,7 @@ class SampleDB(object):
         is_longitudinal,
         lead_person,
         description=None,
-        **kwargs
+        **kwargs,
     ):
         # type: (str, str, bool, str, str) -> Study
         """

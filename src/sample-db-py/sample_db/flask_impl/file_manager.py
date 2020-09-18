@@ -83,7 +83,7 @@ class BaseFileManager(object):
                     "barcode": entry["barcode"],
                     "well_position": entry["well"],
                 }
-                if "date" in entry:
+                if "date" in entry and entry["date"]:
                     try:
                         specimen_entry["collection_date"] = self.parse_date(
                             entry["date"]
@@ -128,7 +128,7 @@ class BaseFileManager(object):
                     "short_code": entry["study_short_code"],
                     "specimen_type": entry["specimen_type"],
                 }
-                if "date" in entry:
+                if "date" in entry and entry["date"]:
                     try:
                         specimen_entry["collection_date"] = self.parse_date(
                             entry["date"]
@@ -221,8 +221,13 @@ class CLIFileManager(BaseFileManager):
                     e = dict()
                     e["uid"] = entry["uid"]
                     e["short_code"] = entry["study_short_code"]
-                    if "collection_date" in entry:
-                        e["collection_date"] = self.parse_date(entry["collection_date"])
+                    if "date" in entry and entry["date"]:
+                        try:
+                            e["collection_date"] = self.parse_date(entry["date"])
+                        except ValueError:
+                            raise DateParseError(
+                                message="Date must be in format 'DD/MM/YYYY'"
+                            )
                     else:
                         e["collection_date"] = None
                     subject_queries.append(e)
@@ -245,8 +250,13 @@ class CLIFileManager(BaseFileManager):
                     e["specimen_type"] = entry["specimen_type"]
                     e["barcode"] = entry["barcode"]
                     e["well_position"] = entry["well"]
-                    if "date" in entry:
-                        e["collection_date"] = self.parse_date(entry["date"])
+                    if "date" in entry and entry["date"]:
+                        try:
+                            e["collection_date"] = self.parse_date(entry["date"])
+                        except ValueError:
+                            raise DateParseError(
+                                message="Date must be in format 'DD/MM/YYYY'"
+                            )
                     else:
                         e["collection_date"] = None
                     e["comments"] = entry.get("comments")
