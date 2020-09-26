@@ -1,21 +1,19 @@
-from flask import request, jsonify, send_from_directory, abort, send_file
-from sqlalchemy.orm.exc import NoResultFound, UnmappedInstanceError
+from flask import abort, jsonify, request, send_file, send_from_directory
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm.exc import NoResultFound, UnmappedInstanceError
 from werkzeug.exceptions import NotFound
 
 from sample_db.flask_impl import app, db
-
 from sample_db.flask_impl.file_manager import BaseFileManager, DateParseError
 from sample_db.flask_impl.schemas import (
+    LocationSchema,
+    MatrixPlateSchema,
+    MatrixTubeSchema,
+    SpecimenSchema,
+    SpecimenTypeSchema,
     StudySchema,
     StudySubjectSchema,
-    LocationSchema,
-    SpecimenTypeSchema,
-    MatrixPlateSchema,
-    SpecimenSchema,
-    MatrixTubeSchema,
 )
-
 
 study_schema = StudySchema()
 study_subject_schema = StudySubjectSchema()
@@ -71,9 +69,7 @@ def parse_integrity_error(e):
 
 
 class InvalidUsage(Exception):
-    status_code = 400
-
-    def __init__(self, message, status_code=None, payload=None):
+    def __init__(self, message, status_code=400, payload=None):
         Exception.__init__(self)
         self.message = message
         if status_code is not None:
@@ -110,7 +106,7 @@ def check_status():
 def get_studies():
     studies = db.get_studies()
     d = study_schema.dump(studies, many=True)
-    res = jsonify(data=d, error={}) #
+    res = jsonify(data=d, error={})
     return res
 
 
@@ -136,15 +132,9 @@ def create_or_update_study():
                 except IntegrityError as e:
                     raise InvalidUsage(parse_integrity_error(e), status_code=403)
             study_entries = study_schema.dump(study)
-            study_subject_entries = study_subject_schema.dump(
-                study_subjects, many=True
-            )
-            specimen_entries = specimen_schema.dump(
-                specimens, many=True
-            )
-            matrix_tube_entries = matrix_tube_schema.dump(
-                matrix_tubes, many=True
-            )
+            study_subject_entries = study_subject_schema.dump(study_subjects, many=True)
+            specimen_entries = specimen_schema.dump(specimens, many=True)
+            matrix_tube_entries = matrix_tube_schema.dump(matrix_tubes, many=True)
             d = {
                 "study": study_entries,
                 "study_subject": study_subject_entries,
@@ -157,7 +147,7 @@ def create_or_update_study():
                 "specimen": {},
                 "matrix_tube": {},
             }
-            res = jsonify(data=d)
+            res = jsonify(data=d, error=err)
             return res
         except IntegrityError as e:
             raise InvalidUsage(parse_integrity_error(e), status_code=403)
@@ -171,13 +161,9 @@ def get_study(study_id):
     try:
         study, study_subjects, specimens, matrix_tubes = db.get_study(study_id)
         study_entries = study_schema.dump(study)
-        study_subject_entries = study_subject_schema.dump(
-            study_subjects, many=True
-        )
+        study_subject_entries = study_subject_schema.dump(study_subjects, many=True)
         specimen_entries = specimen_schema.dump(specimens, many=True)
-        matrix_tube_entries = matrix_tube_schema.dump(
-            matrix_tubes, many=True
-        )
+        matrix_tube_entries = matrix_tube_schema.dump(matrix_tubes, many=True)
         d = {
             "study": study_entries,
             "study_subject": study_subject_entries,
@@ -226,7 +212,7 @@ def add_study_subject_file(study_id):
         study_subject_file = request.files["file"]
         try:
             study_subject_uids = bf.parse_study_subject_file(study_subject_file)
-        except:
+        except Exception:
             raise KeyError
         db.add_study_subjects(study_subject_uids, study_id)
         study_subjects = db.get_study_subjects(study_id)
@@ -369,13 +355,9 @@ def get_plate(plate_id):
         if not plate:
             raise NoResultFound
         plate_entry = matrix_plate_schema.dump(plate)
-        study_subject_entry = study_subject_schema.dump(
-            study_subjects, many=True
-        )
+        study_subject_entry = study_subject_schema.dump(study_subjects, many=True)
         specimen_entry = specimen_schema.dump(specimens, many=True)
-        matrix_tube_entry = matrix_tube_schema.dump(
-            matrix_tubes, many=True
-        )
+        matrix_tube_entry = matrix_tube_schema.dump(matrix_tubes, many=True)
         d = {
             "matrix_plate": plate_entry,
             "study_subject": study_subject_entry,
@@ -419,13 +401,9 @@ def upload_plate():
             create_missing_subjects,
         )
         plate_entry = matrix_plate_schema.dump(matrix_plate)
-        study_subject_entry = study_subject_schema.dump(
-            study_subjects, many=True
-        )
+        study_subject_entry = study_subject_schema.dump(study_subjects, many=True)
         specimen_entry = specimen_schema.dump(specimens, many=True)
-        matrix_tube_entry = matrix_tube_schema.dump(
-            matrix_tubes, many=True
-        )
+        matrix_tube_entry = matrix_tube_schema.dump(matrix_tubes, many=True)
         d = {
             "matrix_plate": plate_entry,
             "study_subject": study_subject_entry,
@@ -512,15 +490,11 @@ def update_plates():
 
         plate_entry = matrix_plate_schema.dump(matrix_plates, many=True)
 
-        study_subject_entry = study_subject_schema.dump(
-            study_subjects, many=True
-        )
+        study_subject_entry = study_subject_schema.dump(study_subjects, many=True)
 
         specimen_entry = specimen_schema.dump(specimens, many=True)
 
-        matrix_tube_entry = matrix_tube_schema.dump(
-            matrix_tubes, many=True
-        )
+        matrix_tube_entry = matrix_tube_schema.dump(matrix_tubes, many=True)
 
         d = {
             "matrix_plate": plate_entry,
@@ -612,9 +586,11 @@ def search_by_barcode():
                 "Date",
                 "Study Short Code",
                 "Specimen Type",
-                "Comments"
+                "Comments",
             ]
-            header = fields[:barcode_index] + additional_fields + fields[barcode_index + 1 :]
+            header = (
+                fields[:barcode_index] + additional_fields + fields[barcode_index + 1 :]
+            )
             temp_path = bf.create_barcode_search_file(entries, header)
             return send_file(
                 temp_path, as_attachment=True, attachment_filename="barcode_search.csv"

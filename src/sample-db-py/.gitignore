@@ -9,8 +9,11 @@ __pycache__/
 # Distribution / packaging
 .Python
 env/
+winenv/
 build/
 win-build/
+darwin/
+win32/
 develop-eggs/
 dist/
 win-dist/

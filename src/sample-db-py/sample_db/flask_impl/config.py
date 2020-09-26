@@ -14,8 +14,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import os
 import logging
+import os
+import platform
+from typing import Dict, Type, Union
 
 basedir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 prod_dir = os.path.abspath(
@@ -25,12 +27,14 @@ major_version = "v1"
 version = "v1.1.6"
 app_dir = "com.greenhouse.sampledb"
 
-if os.sys.platform == "darwin":
+if platform.system() == "Darwin":
     APPDATA = os.path.join(
-        os.environ.get("HOME"), "Library", "Application Support", app_dir, major_version
+        os.environ["HOME"], "Library", "Application Support", app_dir, major_version
     )
-elif os.sys.platform == "win32":
-    APPDATA = os.path.join(os.environ.get("LOCALAPPDATA"), app_dir, major_version)
+elif platform.system() == "Windows":
+    APPDATA = os.path.join(os.environ["LOCALAPPDATA"], app_dir, major_version)
+else:
+    raise Exception("Cannot Determine Platform.")
 
 if not os.path.exists(APPDATA):
     os.makedirs(APPDATA)
@@ -72,4 +76,7 @@ class ProductionConfig(Config):
     LOGGING_LEVEL = logging.ERROR
 
 
-config = {"Production": ProductionConfig, "Development": DevelopmentConfig}
+config: Dict[str, Union[Type[ProductionConfig], Type[DevelopmentConfig]]] = {
+    "Production": ProductionConfig,
+    "Development": DevelopmentConfig,
+}

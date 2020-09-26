@@ -1,0 +1,44 @@
+fail_fast: true
+repos:
+  - repo: local
+    hooks:
+      - id: system
+        name: Requirements
+        entry: bash -c 'cd src/sample-db-py && poetry export --format=requirements.txt --without-hashes --dev --output=docs/requirements.txt'
+        pass_filenames: false
+        language: system
+  - repo: local
+    hooks:
+      - id: system
+        name: isort
+        entry: bash -c 'cd src/sample-db-py && poetry run isort sample_db/**/*.py'
+        pass_filenames: false
+        language: system
+  - repo: local
+    hooks:
+      - id: system
+        name: Black
+        entry: bash -c 'cd src/sample-db-py && poetry run black sample_db'
+        pass_filenames: false
+        language: system
+  - repo: local
+    hooks:
+      - id: system
+        name: MyPy
+        entry: bash -c 'cd src/sample-db-py && poetry run mypy --config-file=.mypy.ini sample_db'
+        pass_filenames: false
+        language: system
+  - repo: local
+    hooks:
+      - id: system
+        name: flake8
+        entry: bash -c 'cd src/sample-db-py && poetry run flake8 --config=.flake8 sample_db'
+        pass_filenames: false
+        language: system
+  - repo: local
+    hooks:
+      - id: system
+        name: pyupgrade
+        entry: bash -c 'cd src/sample-db-py && poetry run pyupgrade sample_db/**/*.py'
+        pass_filenames: false
+        language: system

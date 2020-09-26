@@ -1,15 +1,15 @@
 from marshmallow import fields
-from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
+from marshmallow_sqlalchemy import SQLAlchemyAutoSchema  # type: ignore
 
 from sample_db.db_impl.models import (
-    Study,
-    StudySubject,
-    SpecimenType,
-    Specimen,
     Location,
-    StorageContainer,
     MatrixPlate,
     MatrixTube,
+    Specimen,
+    SpecimenType,
+    StorageContainer,
+    Study,
+    StudySubject,
 )
 
 from . import db

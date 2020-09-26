@@ -1,7 +1,10 @@
 import os
+from typing import Type, Union
 
 from flask import Flask
-from sample_db.flask_impl.config import config
+
+from sample_db.db_impl.app import SampleDB
+from sample_db.flask_impl.config import DevelopmentConfig, ProductionConfig, config
 from sample_db.flask_impl.utils import backup_db
 
 # import logging
@@ -9,9 +12,9 @@ from sample_db.flask_impl.utils import backup_db
 # conf = config['Development']
 
 # Load Configuration
-conf = config[os.environ.get("CONFIG", "Development")]
-
-from sample_db.db_impl.app import SampleDB
+conf: Union[Type[DevelopmentConfig], Type[ProductionConfig]] = config[
+    os.environ.get("CONFIG", "Development")
+]
 
 app = Flask(__name__)
 app.config.from_object(conf)
@@ -25,7 +28,5 @@ app.config.from_object(conf)
 backup_db(conf.DB_PATH, conf.BACKUP_PATH, conf.BACKUP_DATE_FORMAT)
 
 db = SampleDB(conf.SQLALCHEMY_DATABASE_URI)
-
-import sample_db.flask_impl.views
 
 print("Loading Flask App")

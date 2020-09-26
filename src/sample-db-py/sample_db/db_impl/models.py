@@ -14,25 +14,24 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# from sample_db import conf
+import logging
 from datetime import datetime
 
 from sqlalchemy import (
-    Column,
-    DateTime,
-    Date,
-    String,
-    Integer,
-    ForeignKey,
     Boolean,
+    Column,
+    Date,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
     event,
 )
-
-from sqlalchemy.schema import UniqueConstraint
-from sqlalchemy.orm import relationship, validates
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
-
-# from sample_db import conf
-import logging
+from sqlalchemy.orm import relationship, validates
+from sqlalchemy.schema import UniqueConstraint
+from sqlalchemy.sql.expression import null
 
 
 class Base(object):
@@ -59,7 +58,7 @@ class Base(object):
         return self
 
 
-Base = declarative_base(cls=Base)
+SampleDBBase = declarative_base(cls=Base)
 
 
 # Thinking about how to support keeping track of samples across studies, e.g. samples from individuals go into 2
@@ -74,7 +73,7 @@ Base = declarative_base(cls=Base)
 #                                            UniqueConstraint('individual_id', 'study_id', name='individual_study_uc'))
 
 
-class Study(Base):
+class Study(SampleDBBase):
     __tablename__ = "study"
     title = Column(String, unique=True, index=True, nullable=False)
     description = Column(String)
@@ -119,7 +118,7 @@ class Study(Base):
         return is_longitudinal
 
 
-class StudySubject(Base):
+class StudySubject(SampleDBBase):
     __tablename__ = "study_subject"
     __table_args__ = (
         UniqueConstraint("uid", "study_id", name="study_subject_study_uc"),
@@ -136,7 +135,7 @@ class StudySubject(Base):
         super(StudySubject, self).__init__(**kwargs)
 
 
-class SpecimenType(Base):
+class SpecimenType(SampleDBBase):
     __tablename__ = "specimen_type"
     label = Column(String, unique=True, index=True, nullable=False)
 
@@ -150,7 +149,7 @@ class SpecimenType(Base):
         return label
 
 
-class Specimen(Base):
+class Specimen(SampleDBBase):
     __tablename__ = "specimen"
 
     # Require that only one record of a specimen of a specific type for a specific individual collected
@@ -169,7 +168,7 @@ class Specimen(Base):
     study_subject = relationship("StudySubject", backref="specimens")
     specimen_type_id = Column(Integer, ForeignKey("specimen_type.id"))
     specimen_type = relationship("SpecimenType")
-    collection_date = Column(Date, default=None)
+    collection_date = Column(Date, default=None, nullable=True)
 
     def __str__(self):
         return "<{}: {} from {}>".format(
@@ -186,7 +185,7 @@ class Specimen(Base):
         return collection_date
 
 
-class Location(Base):
+class Location(SampleDBBase):
     __tablename__ = "location"
     description = Column(String, unique=True, nullable=False)
 
@@ -210,7 +209,7 @@ class LocationAnnotation(object):
         return relationship("Location", backref="specimen_containers")
 
 
-class StorageContainer(Base):
+class StorageContainer(SampleDBBase):
     __tablename__ = "storage_container"
 
     discriminator = Column("type", String(255))
@@ -225,7 +224,7 @@ class StorageContainer(Base):
     exhausted = Column(Boolean, nullable=False, default=False)
 
 
-class MatrixPlate(LocationAnnotation, Base):
+class MatrixPlate(LocationAnnotation, SampleDBBase):
     __tablename__ = "matrix_plate"
     uid = Column(String, unique=True, index=True, nullable=False)
     hidden = Column(Boolean, nullable=False, default=False)

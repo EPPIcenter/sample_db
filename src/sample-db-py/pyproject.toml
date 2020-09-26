@@ -18,6 +18,19 @@ werkzeug = "^1.0.1"
 ipython = "^7.17.0"
 pylint = "^2.5.3"
 black = "^19.10b0"
+pyinstaller = "^4.0"
+pre-commit = "^2.7.1"
+flake8 = "^3.8.3"
+mypy = "^0.782"
+sqlalchemy-stubs = "^0.3"
+pyupgrade = "^2.7.2"
+
+[tool.black]
+line-length = 88
+target-version = ['py38']
+
+[tool.isort]
+profile = "black"
 
 [build-system]
 requires = ["poetry-core>=1.0.0a5"]

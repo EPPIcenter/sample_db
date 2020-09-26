@@ -16,21 +16,23 @@
 
 import datetime
 from contextlib import contextmanager
+from typing import List, Optional, Tuple, Type, Union
+
 from sqlalchemy import create_engine
-from sqlalchemy.event import listen
 from sqlalchemy.engine import Engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.event import listen
+from sqlalchemy.orm import session, sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 
 from sample_db.db_impl.models import (
-    Base,
-    Study,
-    StudySubject,
-    Specimen,
+    Location,
     MatrixPlate,
     MatrixTube,
+    SampleDBBase,
+    Specimen,
     SpecimenType,
-    Location,
+    Study,
+    StudySubject,
 )
 
 Session = sessionmaker()
@@ -42,7 +44,7 @@ def set_sqlite_pragma(dbapi_connection, connection_record):
 
 
 class SampleDB(object):
-    def __init__(self, conn_string, **kwargs):
+    def __init__(self, conn_string: str, **kwargs):
         """
         SampleDB takes as an arg a connection string that describes the database to connect to, of the type used
         by SQLAlchemy.
@@ -54,7 +56,7 @@ class SampleDB(object):
 
         self._conn_string = conn_string
         self.engine = create_engine(conn_string, **kwargs)
-        Base.metadata.create_all(self.engine)
+        SampleDBBase.metadata.create_all(self.engine)
         self._session = Session(bind=self.engine)
 
     @contextmanager
@@ -76,14 +78,12 @@ class SampleDB(object):
 
     def create_study(
         self,
-        title,
-        short_code,
-        is_longitudinal,
-        lead_person,
-        description=None,
-        **kwargs,
-    ):
-        # type: (str, str, bool, str, str) -> Study
+        title: str,
+        short_code: str,
+        is_longitudinal: bool,
+        lead_person: str,
+        description: str = None,
+    ) -> Study:
         """
         :param title: Unique title of study
         :param short_code: Unique short code to refer to the study
@@ -103,26 +103,27 @@ class SampleDB(object):
             session.add(study)
         return study
 
-    def get_study(self, study_id):
-        # type: (int) -> tuple[Study, list[StudySubject], list[Specimen], list[MatrixTube]]
+    def get_study(
+        self, study_id: int
+    ) -> Tuple[Study, List[StudySubject], List[Specimen], List[MatrixTube]]:
         """
         Get a study
         :param study_id: study ID
         :return: Study with short code.
         """
         with self._session_scope() as session:
-            study = session.query(Study).get(study_id)  # type: Study
+            study = session.query(Study).get(study_id)
             study_subjects = (
                 session.query(StudySubject)
                 .filter(StudySubject.study_id == study_id)
                 .all()
-            )  # type: list[StudySubject]
+            )
             specimens = (
                 session.query(Specimen)
                 .join(StudySubject)
                 .filter(StudySubject.study_id == study_id)
                 .all()
-            )  # type: list[Specimen]
+            )
             matrix_tubes = (
                 session.query(MatrixTube)
                 .join(Specimen)
@@ -133,17 +134,18 @@ class SampleDB(object):
         return study, study_subjects, specimens, matrix_tubes
 
     @staticmethod
-    def _get_study_by_short_code(session, short_code):
+    def _get_study_by_short_code(session: session.Session, short_code: str) -> Study:
         study = session.query(Study).filter(Study.short_code == short_code).one()
         return study
 
-    def get_study_by_short_code(self, short_code):
+    def get_study_by_short_code(self, short_code: str) -> Study:
         with self._session_scope() as session:
             study = self._get_study_by_short_code(session, short_code)
         return study
 
-    def edit_study(self, study):
-        # type: (Study) -> tuple[Study, list[StudySubject], list[Specimen], list[MatrixTube]]
+    def edit_study(
+        self, study: Study
+    ) -> Tuple[Study, List[StudySubject], List[Specimen], List[MatrixTube]]:
         with self._session_scope() as session:
             old_study = session.query(Study).get(study.id)
             old_study.title = study.title
@@ -155,13 +157,13 @@ class SampleDB(object):
                 session.query(StudySubject)
                 .filter(StudySubject.study_id == old_study.id)
                 .all()
-            )  # type: list[StudySubject]
+            )
             specimens = (
                 session.query(Specimen)
                 .join(StudySubject)
                 .filter(StudySubject.study_id == old_study.id)
                 .all()
-            )  # type: list[Specimen]
+            )
             matrix_tubes = (
                 session.query(MatrixTube)
                 .join(Specimen)
@@ -171,8 +173,9 @@ class SampleDB(object):
             )
         return old_study, study_subjects, specimens, matrix_tubes
 
-    def update_study(self, id, d):
-        # type: (int, dict) -> tuple[Study, list[StudySubject], list[Specimen], list[MatrixTube]]
+    def update_study(
+        self, id: int, d: dict
+    ) -> Tuple[Study, List[StudySubject], List[Specimen], List[MatrixTube]]:
         with self._session_scope() as session:
             with session.no_autoflush:
                 study = session.query(Study).get(id)
@@ -181,13 +184,13 @@ class SampleDB(object):
                 session.query(StudySubject)
                 .filter(StudySubject.study_id == study.id)
                 .all()
-            )  # type: list[StudySubject]
+            )
             specimens = (
                 session.query(Specimen)
                 .join(StudySubject)
                 .filter(StudySubject.study_id == study.id)
                 .all()
-            )  # type: list[Specimen]
+            )
             matrix_tubes = (
                 session.query(MatrixTube)
                 .join(Specimen)
@@ -197,15 +200,13 @@ class SampleDB(object):
             )
         return study, study_subjects, specimens, matrix_tubes
 
-    def delete_study(self, study):
-        # type: (Study) -> boolean
+    def delete_study(self, study: Study) -> bool:
         with self._session_scope() as session:
             s = session.query(Study).get(study.id)
             session.delete(s)
         return True
 
-    def get_studies(self):
-        # type () -> list[Study]
+    def get_studies(self) -> List[Study]:
         """
         Get list of all studies
         :return: List of Studies
@@ -214,8 +215,7 @@ class SampleDB(object):
             studies = session.query(Study).all()
         return studies
 
-    def get_study_subjects(self, study_id):
-        # type: (id) -> list[StudySubject]
+    def get_study_subjects(self, study_id: int) -> List[StudySubject]:
         """
         Get study_subjects registered in a study.
         :param study_id: Study ID
@@ -230,8 +230,7 @@ class SampleDB(object):
             )
         return study_subjects
 
-    def add_study_subject(self, uid, study_id):
-        # type: (str, int) -> StudySubject
+    def add_study_subject(self, uid: str, study_id: int) -> StudySubject:
         """
         Add a new study_subject to a study.
         :param uid: unique identifier for study_subject in study.
@@ -243,14 +242,13 @@ class SampleDB(object):
         return study_subject
 
     @staticmethod
-    def _add_study_subject(session, study_id, uid):
+    def _add_study_subject(session, study_id: int, uid: str) -> StudySubject:
         study = session.query(Study).get(study_id)
         study_subject = StudySubject(uid=uid, study_id=study.id)
         session.add(study_subject)
         return study_subject
 
-    def add_study_subjects(self, uids, study_id):
-        # type: (list[str], int) -> list[StudySubject]
+    def add_study_subjects(self, uids: List[str], study_id: int) -> List[StudySubject]:
         """
         Add a collection of study_subjects to a study.
         :param uids: list of unique individual identifiers in a study.
@@ -264,11 +262,9 @@ class SampleDB(object):
                 session.add(subject)
         return study_subjects
 
-    def delete_study_subject(self, study_subject_id):
+    def delete_study_subject(self, study_subject_id: int) -> bool:
         with self._session_scope() as session:
-            study_subject = session.query(StudySubject).get(
-                study_subject_id
-            )  # type: StudySubject
+            study_subject = session.query(StudySubject).get(study_subject_id)
             if not study_subject:
                 raise NoResultFound
             if study_subject.specimens:
@@ -278,55 +274,45 @@ class SampleDB(object):
             session.delete(study_subject)
         return True
 
-    def register_new_location(self, description, **kwargs):
-        # type: (str) -> Location
+    def register_new_location(self, description: str, **kwargs) -> Location:
         """
         Register a new storage location.
         :param description: A short, unique description of the location.
-        :return: Location
         """
         with self._session_scope() as session:
             location = Location(description=description)
             session.add(location)
         return location
 
-    def get_locations(self):
-        # type: () -> list[Location]
+    def get_locations(self) -> List[Location]:
         """
         Get the list of all registered storage locations.
-        :return: Location[]
         """
         with self._session_scope() as session:
             locations = session.query(Location).all()
         return locations
 
-    def get_location(self, id):
-        # type: (int) -> Location
+    def get_location(self, id: int) -> Location:
         """
         Get a single location with the id.
-        :param id: Location ID
-        :return: Location
         """
         with self._session_scope() as session:
             location = session.query(Location).get(id)
         return location
 
-    def update_location(self, id, d):
-        # type: (int, dict) -> Location
+    def update_location(self, id: int, d: dict) -> Location:
         with self._session_scope() as session:
             location = session.query(Location).get(id)
             location.update(d)
         return location
 
-    def delete_location(self, id):
-        # type: (int) -> Boolean
+    def delete_location(self, id: int) -> bool:
         with self._session_scope() as session:
             location = session.query(Location).get(id)
             session.delete(location)
         return True
 
-    def register_new_specimen_type(self, label, **kwargs):
-        # type: (str) -> SpecimenType
+    def register_new_specimen_type(self, label: str, **kwargs) -> SpecimenType:
         """
         Register a new specimen type
         :param label: A short, unique description of the specimen type.
@@ -337,39 +323,39 @@ class SampleDB(object):
             session.add(specimen_type)
         return specimen_type
 
-    def get_specimen_types(self):
-        # type: () -> list[SpecimenType]
+    def get_specimen_types(self) -> List[SpecimenType]:
         """
         Get the list of all registered specimen types.
-        :return: SpecimenType[]
         """
         with self._session_scope() as session:
             specimen_types = session.query(SpecimenType).all()
         return specimen_types
 
-    def get_specimen_type(self, id):
-        # type: (int) -> SpecimenType
+    def get_specimen_type(self, id: int) -> SpecimenType:
         with self._session_scope() as session:
             specimen_type = session.query(SpecimenType).get(id)
         return specimen_type
 
-    def update_specimen_type(self, id, d):
-        # type: (int, dict) -> SpecimenType
+    def update_specimen_type(self, id: int, d: dict) -> SpecimenType:
         with self._session_scope() as session:
             specimen_type = session.query(SpecimenType).get(id)
             specimen_type.update(d)
         return specimen_type
 
-    def delete_specimen_type(self, id):
-        # type: (int) -> Boolean
+    def delete_specimen_type(self, id: int) -> bool:
         with self._session_scope() as session:
             specimen_type = session.query(SpecimenType).get(id)
             session.delete(specimen_type)
         return True
 
     @staticmethod
-    def _get_specimen(session, uid, short_code, specimen_type, collection_date):
-        # type: (Session, str, str, str, datetime.date) -> Specimen
+    def _get_specimen(
+        session: session.Session,
+        uid: str,
+        short_code: str,
+        specimen_type: str,
+        collection_date: Optional[datetime.date],
+    ) -> Specimen:
         """
         Unmanaged function to get a specimen given the provided arguments.
         :param session: The _session to use for querying the database.
@@ -397,8 +383,13 @@ class SampleDB(object):
         return specimen_query.one()
 
     @staticmethod
-    def _add_specimen(session, uid, short_code, specimen_type, collection_date=None):
-        # type: (Session, str, str, str, datetime.date, Optional[str]) -> Specimen
+    def _add_specimen(
+        session: session.Session,
+        uid: str,
+        short_code: str,
+        specimen_type_label: str,
+        collection_date: Optional[datetime.date] = None,
+    ) -> Specimen:
         """
         Unmanaged function to add a new specimen to a study subject
         :param session: The _session to use for querying the database.
@@ -417,7 +408,7 @@ class SampleDB(object):
         )
         specimen_type = (
             session.query(SpecimenType)
-            .filter(SpecimenType.label == specimen_type)
+            .filter(SpecimenType.label == specimen_type_label)
             .one()
         )
         specimen = Specimen()
@@ -427,7 +418,9 @@ class SampleDB(object):
         session.add(specimen)
         return specimen
 
-    def get_specimens(self, uid, short_code, collection_date=None):
+    def get_specimens(
+        self, uid: str, short_code: str, collection_date: datetime.date = None
+    ) -> List[Specimen]:
         """
         Get all specimens associated with a study subject
         :param uid: Unique ID identifying the study subject.
@@ -451,12 +444,14 @@ class SampleDB(object):
             specimens = specimen_query.all()
         return specimens
 
-    def get_matrix_plates(self):
+    def get_matrix_plates(self) -> List[MatrixPlate]:
         with self._session_scope() as session:
             matrix_plates = session.query(MatrixPlate).all()
         return matrix_plates
 
-    def get_matrix_plate(self, plate_id):
+    def get_matrix_plate(
+        self, plate_id: int
+    ) -> Tuple[MatrixPlate, List[StudySubject], List[Specimen], List[MatrixTube]]:
         with self._session_scope() as session:
             plate = session.query(MatrixPlate).get(plate_id)
             study_subjects = (
@@ -478,13 +473,12 @@ class SampleDB(object):
 
     def add_matrix_plate_with_specimens(
         self,
-        plate_uid,
-        location_id,
-        specimen_entries,
-        create_missing_specimens=False,
-        create_missing_subjects=False,
-    ):
-        # type: (str, int, list(dict)) -> list(MatrixTube)
+        plate_uid: str,
+        location_id: int,
+        specimen_entries: List[dict],
+        create_missing_specimens: bool = False,
+        create_missing_subjects: bool = False,
+    ) -> Tuple[MatrixPlate, List[StudySubject], List[Specimen], List[MatrixTube]]:
         """
         Add a new matrix plate with new specimens
         :param plate_uid: Unique Plate ID.
@@ -514,7 +508,10 @@ class SampleDB(object):
                     .one()
                 )
             except NoResultFound:
-                matrix_plate = MatrixPlate(uid=plate_uid, location_id=location_id)
+                matrix_plate = MatrixPlate(
+                    uid=plate_uid, location_id=location_id
+                )  # type:ignore
+                # declared_attr is not yet supported.
                 session.add(matrix_plate)
                 session.flush()
             for specimen_entry in specimen_entries:
@@ -583,8 +580,9 @@ class SampleDB(object):
             )
         return matrix_plate, study_subjects, specimens, matrix_tubes
 
-    def update_matrix_tube_locations(self, matrix_tube_entries):
-        # type: (list(dict)) -> list(MatrixTube)
+    def update_matrix_tube_locations(
+        self, matrix_tube_entries: List[dict]
+    ) -> Tuple[List[MatrixPlate], List[StudySubject], List[Specimen], List[MatrixTube]]:
         """
         Update locations of matrix tubes.
         :param matrix_tube_entries: list of matrix_tube_entries:
@@ -659,13 +657,13 @@ class SampleDB(object):
             session.flush()
         return matrix_plates, study_subjects, specimens, matrix_tubes
 
-    def delete_plate(self, plate_id):
+    def delete_plate(self, plate_id: int) -> bool:
         with self._session_scope() as session:
             matrix_plate = session.query(MatrixPlate).get(plate_id)
             session.delete(matrix_plate)
         return True
 
-    def hide_plates(self, plate_ids):
+    def hide_plates(self, plate_ids: List[int]) -> List[MatrixPlate]:
         plates = []
         with self._session_scope() as session:
             for plate_id in plate_ids:
@@ -674,7 +672,7 @@ class SampleDB(object):
                 plates.append(plate)
         return plates
 
-    def unhide_plates(self, plate_ids):
+    def unhide_plates(self, plate_ids: List[int]) -> List[MatrixPlate]:
         plates = []
         with self._session_scope() as session:
             for plate_id in plate_ids:
@@ -683,7 +681,9 @@ class SampleDB(object):
                 plates.append(plate)
         return plates
 
-    def find_specimens(self, specimen_entries, date_format="%d/%m/%Y"):
+    def find_specimens(
+        self, specimen_entries: List[dict], date_format: str = "%d/%m/%Y"
+    ) -> List[dict]:
         results = []
         with self._session_scope() as session:
             for specimen_entry in specimen_entries:
@@ -697,7 +697,7 @@ class SampleDB(object):
                     )
                     specimen_matrix_tubes = [
                         _
-                        for _ in specimen.storage_containers
+                        for _ in specimen.storage_containers  # type:ignore
                         if _.discriminator == "matrix_tube"
                     ]
                 except NoResultFound:
@@ -740,7 +740,9 @@ class SampleDB(object):
                     results.append(r)
         return results
 
-    def get_matrix_tubes_from_specimens(self, specimen_entries):
+    def get_matrix_tubes_from_specimens(
+        self, specimen_entries: List[dict]
+    ) -> List[MatrixTube]:
         results = []
         with self._session_scope() as session:
             for entry in specimen_entries:
@@ -754,7 +756,7 @@ class SampleDB(object):
                     )
                     specimen_matrix_tubes = [
                         _
-                        for _ in specimen.storage_containers
+                        for _ in specimen.storage_containers  # type:ignore
                         if _.discriminator == "matrix_tube"
                     ]
                 except NoResultFound:
@@ -763,8 +765,9 @@ class SampleDB(object):
         return results
 
     @staticmethod
-    def _get_matrix_tube(session, matrix_tube_barcode):
-        # type: (Session, str) -> MatrixTube
+    def _get_matrix_tube(
+        session: session.Session, matrix_tube_barcode: str
+    ) -> MatrixTube:
         """
         Unmanaged function to get a matrix tube from a barcode.
         :param session: The _session to use for querying the database.
@@ -778,8 +781,7 @@ class SampleDB(object):
         )
         return matrix_tube
 
-    def get_matrix_tube(self, matrix_tube_barcode):
-        # type: (str) -> MatrixTube
+    def get_matrix_tube(self, matrix_tube_barcode: str) -> MatrixTube:
         """
         Get a matrix tube with a corresponding barcode.
         :param matrix_tube_barcode: Unique barcode identifying a matrix tube.
@@ -789,8 +791,7 @@ class SampleDB(object):
             matrix_tube = self._get_matrix_tube(session, matrix_tube_barcode)
         return matrix_tube
 
-    def get_matrix_tubes(self, matrix_tube_barcodes):
-        # type: (list(str)) -> list(MatrixTube)
+    def get_matrix_tubes(self, matrix_tube_barcodes: List[str]) -> List[MatrixTube]:
         """
         Get matrix tubes from list of barcodes
         :param matrix_tube_barcodes: List of unique barcodes identifying matrix tubes.
@@ -802,7 +803,7 @@ class SampleDB(object):
             ]
         return matrix_tubes
 
-    def set_matrix_tubes_exhausted(self, matrix_tube_barcodes):
+    def set_matrix_tubes_exhausted(self, matrix_tube_barcodes: List[str]) -> None:
         """
         Set a matrix tube as exhausted.
         :param matrix_tube_barcodes: Unique barcodes identifying a matrix tube.
@@ -812,9 +813,8 @@ class SampleDB(object):
             for matrix_tube_barcode in matrix_tube_barcodes:
                 matrix_tube = self._get_matrix_tube(session, matrix_tube_barcode)
                 matrix_tube.exhausted = True
-        return matrix_tube
 
-    def unset_matrix_tubes_exhausted(self, matrix_tube_barcodes):
+    def unset_matrix_tubes_exhausted(self, matrix_tube_barcodes: List[str]) -> None:
         """
         Unset a matrix tube as exhausted.
         :param matrix_tube_barcodes: Unique barcodes identifying a matrix tube.
@@ -824,9 +824,10 @@ class SampleDB(object):
             for matrix_tube_barcode in matrix_tube_barcodes:
                 matrix_tube = self._get_matrix_tube(session, matrix_tube_barcode)
                 matrix_tube.exhausted = False
-        return matrix_tube
 
-    def convert_barcoded_entries(self, barcoded_entries, date_format="%d/%m/%Y"):
+    def convert_barcoded_entries(
+        self, barcoded_entries: List[dict], date_format: str = "%d/%m/%Y"
+    ) -> List[dict]:
         results = []
         with self._session_scope() as session:
             for entry in barcoded_entries:
@@ -853,10 +854,12 @@ class SampleDB(object):
                 results.append(entry)
         return results
 
-    def delete_matrix_tubes_and_specimens(self, matrix_tubes, specimens):
+    def delete_matrix_tubes_and_specimens(
+        self, matrix_tubes: List[MatrixTube], specimens: List[Specimen]
+    ) -> Tuple[List[int], List[int]]:
         with self._session_scope() as session:
-            matrix_tube_ids = list(set([_.id for _ in matrix_tubes]))
-            specimen_ids = list(set([_.id for _ in specimens]))
+            matrix_tube_ids = list({_.id for _ in matrix_tubes})
+            specimen_ids = list({_.id for _ in specimens})
             with session.no_autoflush:
                 for matrix_tube in matrix_tubes:
                     session.delete(matrix_tube)
@@ -864,20 +867,22 @@ class SampleDB(object):
                     session.delete(specimen)
         return matrix_tube_ids, specimen_ids
 
-    def delete_matrix_tubes(self, matrix_tubes):
+    def delete_matrix_tubes(
+        self, matrix_tubes: List[MatrixTube]
+    ) -> Tuple[List[int], List[int]]:
         with self._session_scope() as session:
-            matrix_tube_ids = list(set([_.id for _ in matrix_tubes]))
+            matrix_tube_ids = list({_.id for _ in matrix_tubes})
             specimens = []
             for matrix_tube in matrix_tubes:
                 specimen = matrix_tube.specimen
                 specimen_matrix_tube_ids = [
                     _.id
-                    for _ in specimen.storage_containers
+                    for _ in specimen.storage_containers  # type:ignore
                     if _.discriminator == "matrix_tube"
                 ]
                 if set(specimen_matrix_tube_ids).issubset(matrix_tube_ids):
                     specimens.append(specimen)
-            specimen_ids = list(set([_.id for _ in specimens]))
+            specimen_ids = list({_.id for _ in specimens})
             with session.no_autoflush:
                 for matrix_tube in matrix_tubes:
                     session.delete(matrix_tube)

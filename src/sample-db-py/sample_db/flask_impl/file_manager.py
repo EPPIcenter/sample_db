@@ -1,6 +1,6 @@
-import os
 import csv
 import datetime
+import os
 import tempfile
 
 
@@ -55,7 +55,7 @@ class BaseFileManager(object):
     def parse_file_name(filename):
         filename = filename.strip()
         if os.name == "posix":
-            filename = filename.replace("\ ", " ")
+            filename = filename.replace(r"\ ", " ")
         return filename
 
     def parse_study_subject_file(self, f):

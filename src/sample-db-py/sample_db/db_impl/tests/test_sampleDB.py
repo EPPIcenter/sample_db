@@ -22,8 +22,16 @@ from datetime import date, timedelta
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 
-from sample_db.db_impl.models import *
 from sample_db.db_impl.app import SampleDB
+from sample_db.db_impl.models import (
+    Location,
+    MatrixPlate,
+    MatrixTube,
+    Specimen,
+    SpecimenType,
+    Study,
+    StudySubject,
+)
 
 
 class TestSampleDB(unittest.TestCase):
