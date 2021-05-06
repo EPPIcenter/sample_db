@@ -37,7 +37,7 @@
     "reselect": "^3.0.0",
     "rxjs": "^5.1.0",
     "stacktrace-js": "^2.0.0",
-    "underscore": "^1.8.3",
+    "underscore": "^1.12.1",
     "webpack-cli": "^3.3.1",
     "zone.js": "^0.8.4"
   },
