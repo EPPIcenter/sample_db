@@ -1,3 +1,6 @@
+# DEPRECATED
+This project is no longer being developed. New users should instead check out https://github.com/EPPIcenter/sampleDB-rpackage 
+
 # Getting Started
 Before samples may be added to the database, **Locations** and **Specimen Types** must be registered.
 
